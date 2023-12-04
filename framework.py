@@ -1,3 +1,20 @@
+import configparser
+
+def load_config(file):
+    config = configparser.ConfigParser()
+    config.read(file)
+
+    print("\nROLE:")
+    for key in config["ROLE"]:
+        globals()[key] = config['ROLE'][key]
+        print(f"{key} = {config['ROLE'][key]}")
+
+    print("\nalgorithm:")
+    for key in config["algorithm"]:
+        globals()[key] = config['algorithm'][key]
+        print(f"{key} = {config['algorithm'][key]}")
+
+load_config('config.ini')
 
 class PQCRYPTO:
     def __init__(self):
@@ -33,8 +50,7 @@ class KYBERPY:
         symmetrickey_recovered = Kyber512.dec(ciphertext,secret_key)
         return symmetrickey_recovered
 
-cipheralgorithm = PQCRYPTO()
-#cipheralgorithm = KYBERPY()
+cipheralgorithm = globals()[cipheralgorithm]()
 
 # Alice generates a (public, secret) key pair
 public_key, secret_key = cipheralgorithm.generate_keypair()
@@ -63,7 +79,6 @@ def desifrovani(klic, ciphertext):
     cipher = AES.new(klic, AES.MODE_CBC, iv=iv)
     plaintext = unpad(cipher.decrypt(ciphertext), AES.block_size)
     return plaintext.decode()
-
 
 
 
