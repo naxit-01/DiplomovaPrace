@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\kex.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\kem.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\indcpa.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\polyvec.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\poly.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\ntt.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\cbd.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\reduce.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\verify.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\symmetric-aes.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\bzate\Documents\DiplomovaPrace\chelloworld\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{52DE451F-4C27-3864-807D-4984C5D34132}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

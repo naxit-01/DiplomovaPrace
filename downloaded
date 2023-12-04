@@ -1,0 +1,582 @@
+{'name': 'System Idle Process', 'pid': 0}
+{'name': 'System', 'pid': 4}
+{'name': 'Registry', 'pid': 148}
+{'name': 'svchost.exe', 'pid': 288}
+{'name': 'smss.exe', 'pid': 576}
+{'name': 'csrss.exe', 'pid': 736}
+{'name': 'msedge.exe', 'pid': 756}
+{'name': 'svchost.exe', 'pid': 788}
+{'name': 'conhost.exe', 'pid': 804}
+{'name': 'RuntimeBroker.exe', 'pid': 824}
+{'name': 'fontdrvhost.exe', 'pid': 828}
+{'name': 'wininit.exe', 'pid': 872}
+{'name': 'csrss.exe', 'pid': 876}
+{'name': 'services.exe', 'pid': 940}
+{'name': 'lsass.exe', 'pid': 948}
+{'name': 'WUDFHost.exe', 'pid': 992}
+{'name': 'RuntimeBroker.exe', 'pid': 1016}
+{'name': 'svchost.exe', 'pid': 1060}
+{'name': 'svchost.exe', 'pid': 1080}
+{'name': 'svchost.exe', 'pid': 1132}
+{'name': 'winlogon.exe', 'pid': 1188}
+{'name': 'fontdrvhost.exe', 'pid': 1244}
+{'name': 'dwm.exe', 'pid': 1308}
+{'name': 'svchost.exe', 'pid': 1404}
+{'name': 'svchost.exe', 'pid': 1456}
+{'name': 'svchost.exe', 'pid': 1464}
+{'name': 'svchost.exe', 'pid': 1508}
+{'name': 'firefox.exe', 'pid': 1520}
+{'name': 'firefox.exe', 'pid': 1584}
+{'name': 'svchost.exe', 'pid': 1636}
+{'name': 'svchost.exe', 'pid': 1644}
+{'name': 'svchost.exe', 'pid': 1760}
+{'name': 'IntelCpHDCPSvc.exe', 'pid': 1828}
+{'name': 'svchost.exe', 'pid': 1836}
+{'name': 'svchost.exe', 'pid': 1876}
+{'name': 'svchost.exe', 'pid': 1896}
+{'name': 'svchost.exe', 'pid': 1944}
+{'name': 'svchost.exe', 'pid': 1984}
+{'name': 'svchost.exe', 'pid': 2028}
+{'name': 'IntelCpHeciSvc.exe', 'pid': 2060}
+{'name': 'svchost.exe', 'pid': 2144}
+{'name': 'Code.exe', 'pid': 2156}
+{'name': 'ApplicationFrameHost.exe', 'pid': 2196}
+{'name': 'audiodg.exe', 'pid': 2332}
+{'name': 'svchost.exe', 'pid': 2364}
+{'name': 'svchost.exe', 'pid': 2368}
+{'name': 'svchost.exe', 'pid': 2432}
+{'name': 'svchost.exe', 'pid': 2444}
+{'name': 'svchost.exe', 'pid': 2452}
+{'name': 'svchost.exe', 'pid': 2460}
+{'name': 'Maps.exe', 'pid': 2468}
+{'name': 'svchost.exe', 'pid': 2548}
+{'name': 'msedge.exe', 'pid': 2604}
+{'name': 'NVDisplay.Container.exe', 'pid': 2628}
+{'name': 'svchost.exe', 'pid': 2684}
+{'name': 'svchost.exe', 'pid': 2692}
+{'name': 'svchost.exe', 'pid': 2752}
+{'name': 'svchost.exe', 'pid': 2788}
+{'name': 'igfxCUIService.exe', 'pid': 2796}
+{'name': 'svchost.exe', 'pid': 2860}
+{'name': 'svchost.exe', 'pid': 2912}
+{'name': 'svchost.exe', 'pid': 2920}
+{'name': 'svchost.exe', 'pid': 2928}
+{'name': 'MemCompression', 'pid': 3064}
+{'name': 'svchost.exe', 'pid': 3092}
+{'name': 'svchost.exe', 'pid': 3100}
+{'name': 'conhost.exe', 'pid': 3144}
+{'name': 'svchost.exe', 'pid': 3156}
+{'name': 'msedge.exe', 'pid': 3184}
+{'name': 'svchost.exe', 'pid': 3272}
+{'name': 'firefox.exe', 'pid': 3280}
+{'name': 'jhi_service.exe', 'pid': 3292}
+{'name': 'RuntimeBroker.exe', 'pid': 3384}
+{'name': 'svchost.exe', 'pid': 3416}
+{'name': 'svchost.exe', 'pid': 3436}
+{'name': 'svchost.exe', 'pid': 3508}
+{'name': 'svchost.exe', 'pid': 3524}
+{'name': 'svchost.exe', 'pid': 3532}
+{'name': 'svchost.exe', 'pid': 3640}
+{'name': 'svchost.exe', 'pid': 3668}
+{'name': 'svchost.exe', 'pid': 3740}
+{'name': 'svchost.exe', 'pid': 3796}
+{'name': 'NVDisplay.Container.exe', 'pid': 3824}
+{'name': 'spoolsv.exe', 'pid': 3868}
+{'name': 'msedge.exe', 'pid': 3936}
+{'name': 'svchost.exe', 'pid': 3956}
+{'name': 'svchost.exe', 'pid': 4024}
+{'name': 'wlanext.exe', 'pid': 4080}
+{'name': 'RuntimeBroker.exe', 'pid': 4100}
+{'name': 'nvcontainer.exe', 'pid': 4128}
+{'name': 'SearchIndexer.exe', 'pid': 4328}
+{'name': 'svchost.exe', 'pid': 4360}
+{'name': 'svchost.exe', 'pid': 4380}
+{'name': 'OneApp.IGCC.WinService.exe', 'pid': 4388}
+{'name': 'MSIAPService.exe', 'pid': 4400}
+{'name': 'svchost.exe', 'pid': 4408}
+{'name': 'svchost.exe', 'pid': 4416}
+{'name': 'taskhostw.exe', 'pid': 4436}
+{'name': 'LightKeeperService.exe', 'pid': 4440}
+{'name': 'nvcontainer.exe', 'pid': 4452}
+{'name': 'MSIService.exe', 'pid': 4460}
+{'name': 'svchost.exe', 'pid': 4468}
+{'name': 'VoiceControl_Service.exe', 'pid': 4480}
+{'name': 'NahimicService.exe', 'pid': 4488}
+{'name': 'Mystic_Light_Service.exe', 'pid': 4500}
+{'name': 'MSI_Companion_Service.exe', 'pid': 4508}
+{'name': 'MSI_Central_Service.exe', 'pid': 4516}
+{'name': 'svchost.exe', 'pid': 4524}
+{'name': 'OfficeClickToRun.exe', 'pid': 4536}
+{'name': 'ThunderboltService.exe', 'pid': 4548}
+{'name': 'Sendevsvc.exe', 'pid': 4560}
+{'name': 'LMS.exe', 'pid': 4576}
+{'name': 'svchost.exe', 'pid': 4588}
+{'name': 'MsMpEng.exe', 'pid': 4608}
+{'name': 'svchost.exe', 'pid': 4620}
+{'name': 'Code.exe', 'pid': 4672}
+{'name': 'svchost.exe', 'pid': 4712}
+{'name': 'svchost.exe', 'pid': 4724}
+{'name': 'firefox.exe', 'pid': 4768}
+{'name': 'svchost.exe', 'pid': 4988}
+{'name': 'svchost.exe', 'pid': 5072}
+{'name': 'msedgewebview2.exe', 'pid': 5260}
+{'name': 'svchost.exe', 'pid': 5376}
+{'name': 'Microsoft.Media.Player.exe', 'pid': 6008}
+{'name': 'SearchApp.exe', 'pid': 6060}
+{'name': 'python.exe', 'pid': 6192}
+{'name': 'WmiPrvSE.exe', 'pid': 6300}
+{'name': 'NVIDIA Share.exe', 'pid': 6316}
+{'name': 'WmiPrvSE.exe', 'pid': 6328}
+{'name': 'svchost.exe', 'pid': 6380}
+{'name': 'WmiPrvSE.exe', 'pid': 6464}
+{'name': 'svchost.exe', 'pid': 6652}
+{'name': 'svchost.exe', 'pid': 6660}
+{'name': 'svchost.exe', 'pid': 6900}
+{'name': 'PresentationFontCache.exe', 'pid': 7016}
+{'name': 'Code.exe', 'pid': 7052}
+{'name': 'rundll32.exe', 'pid': 7064}
+{'name': 'powershell.exe', 'pid': 7108}
+{'name': 'sihost.exe', 'pid': 7288}
+{'name': 'nvcontainer.exe', 'pid': 7332}
+{'name': 'Code.exe', 'pid': 7376}
+{'name': 'NisSrv.exe', 'pid': 7556}
+{'name': 'msedgewebview2.exe', 'pid': 7604}
+{'name': 'firefox.exe', 'pid': 7748}
+{'name': 'dllhost.exe', 'pid': 7756}
+{'name': 'svchost.exe', 'pid': 7768}
+{'name': 'conhost.exe', 'pid': 7832}
+{'name': 'firefox.exe', 'pid': 8004}
+{'name': 'msedgewebview2.exe', 'pid': 8040}
+{'name': 'LockApp.exe', 'pid': 8108}
+{'name': 'svchost.exe', 'pid': 8224}
+{'name': 'generator.exe', 'pid': 8312}
+{'name': 'svchost.exe', 'pid': 8356}
+{'name': 'ctfmon.exe', 'pid': 8464}
+{'name': 'firefox.exe', 'pid': 8484}
+{'name': 'firefox.exe', 'pid': 8488}
+{'name': 'Code.exe', 'pid': 8524}
+{'name': 'explorer.exe', 'pid': 8664}
+{'name': 'msedgewebview2.exe', 'pid': 8680}
+{'name': 'OmApSvcBroker.exe', 'pid': 8724}
+{'name': 'svchost.exe', 'pid': 8792}
+{'name': 'igfxEM.exe', 'pid': 8892}
+{'name': 'MSI.CentralServer.exe', 'pid': 9152}
+{'name': 'msedge.exe', 'pid': 9176}
+{'name': 'conhost.exe', 'pid': 9184}
+{'name': 'powershell.exe', 'pid': 9196}
+{'name': 'msedge.exe', 'pid': 9356}
+{'name': 'RuntimeBroker.exe', 'pid': 9388}
+{'name': 'svchost.exe', 'pid': 9492}
+{'name': 'svchost.exe', 'pid': 9620}
+{'name': 'StartMenuExperienceHost.exe', 'pid': 9860}
+{'name': 'NVIDIA Web Helper.exe', 'pid': 10016}
+{'name': 'powershell.exe', 'pid': 10100}
+{'name': 'conhost.exe', 'pid': 10104}
+{'name': 'RuntimeBroker.exe', 'pid': 10140}
+{'name': 'taskhostw.exe', 'pid': 10176}
+{'name': 'ShellExperienceHost.exe', 'pid': 10292}
+{'name': 'svchost.exe', 'pid': 10320}
+{'name': 'msedge.exe', 'pid': 10668}
+{'name': 'msedge.exe', 'pid': 10684}
+{'name': 'firefox.exe', 'pid': 10740}
+{'name': 'Code.exe', 'pid': 10996}
+{'name': 'RuntimeBroker.exe', 'pid': 11160}
+{'name': 'Code.exe', 'pid': 11232}
+{'name': 'VoiceControlEngine.exe', 'pid': 11244}
+{'name': 'RuntimeBroker.exe', 'pid': 11272}
+{'name': 'NhNotifSys.exe', 'pid': 11324}
+{'name': 'firefox.exe', 'pid': 11412}
+{'name': 'firefox.exe', 'pid': 11552}
+{'name': 'msedge.exe', 'pid': 11680}
+{'name': 'SystemSettings.exe', 'pid': 11700}
+{'name': 'firefox.exe', 'pid': 11760}
+{'name': 'firefox.exe', 'pid': 11932}
+{'name': 'firefox.exe', 'pid': 11964}
+{'name': 'msedgewebview2.exe', 'pid': 12048}
+{'name': 'RuntimeBroker.exe', 'pid': 12216}
+{'name': 'firefox.exe', 'pid': 12284}
+{'name': 'SecurityHealthSystray.exe', 'pid': 12704}
+{'name': 'SecurityHealthService.exe', 'pid': 12740}
+{'name': 'ms-teams.exe', 'pid': 12772}
+{'name': 'nvsphelper64.exe', 'pid': 12980}
+{'name': 'NVIDIA Share.exe', 'pid': 13000}
+{'name': 'firefox.exe', 'pid': 13272}
+{'name': 'OneDrive.exe', 'pid': 13284}
+{'name': 'SoundTune.exe', 'pid': 13304}
+{'name': 'firefox.exe', 'pid': 13308}
+{'name': 'rundll32.exe', 'pid': 13320}
+{'name': 'firefox.exe', 'pid': 13388}
+{'name': 'Video.UI.exe', 'pid': 13568}
+{'name': 'python.exe', 'pid': 13832}
+{'name': 'UserOOBEBroker.exe', 'pid': 13860}
+{'name': 'firefox.exe', 'pid': 13896}
+{'name': 'firefox.exe', 'pid': 14000}
+{'name': 'RuntimeBroker.exe', 'pid': 14012}
+{'name': 'NVIDIA Share.exe', 'pid': 14052}
+{'name': 'svchost.exe', 'pid': 14252}
+{'name': 'svchost.exe', 'pid': 14516}
+{'name': 'TextInputHost.exe', 'pid': 14764}
+{'name': 'Code.exe', 'pid': 14792}
+{'name': 'msedgewebview2.exe', 'pid': 14852}
+{'name': 'firefox.exe', 'pid': 14856}
+{'name': 'svchost.exe', 'pid': 14924}
+{'name': 'conhost.exe', 'pid': 15096}
+{'name': 'msedgewebview2.exe', 'pid': 15316}
+{'name': 'dllhost.exe', 'pid': 15484}
+{'name': 'dllhost.exe', 'pid': 15620}
+{'name': 'msedge.exe', 'pid': 15692}
+{'name': 'msedgewebview2.exe', 'pid': 16108}
+{'name': 'Code.exe', 'pid': 16180}
+{'name': 'conhost.exe', 'pid': 16248}
+{'name': 'firefox.exe', 'pid': 16304}
+{'name': 'conhost.exe', 'pid': 16420}
+{'name': 'Code.exe', 'pid': 16516}
+{'name': 'FileCoAuth.exe', 'pid': 16528}
+{'name': 'svchost.exe', 'pid': 16604}
+{'name': 'generator.exe', 'pid': 16944}
+{'name': 'firefox.exe', 'pid': 17188}
+{'name': 'PhoneExperienceHost.exe', 'pid': 17224}
+{'name': 'DCv2.exe', 'pid': 17284}
+{'name': 'firefox.exe', 'pid': 17444}
+{'name': 'svchost.exe', 'pid': 17456}
+{'name': 'SgrmBroker.exe', 'pid': 17556}
+{'name': 'firefox.exe', 'pid': 17576}
+{'name': 'svchost.exe', 'pid': 17608}
+{'name': 'svchost.exe', 'pid': 17692}
+{'name': 'svchost.exe', 'pid': 17872}
+{'name': 'firefox.exe', 'pid': 17884}
+{'name': 'svchost.exe', 'pid': 17968}
+{'name': 'msedge.exe', 'pid': 17988}
+{'name': 'MoUsoCoreWorker.exe', 'pid': 18016}
+{'name': 'python.exe', 'pid': 18240}
+{'name': 'WUDFHost.exe', 'pid': 18348}
+{'name': 'Microsoft.SharePoint.exe', 'pid': 18352}
+{'name': 'CompPkgSrv.exe', 'pid': 18396}Source Name: Service Control Manager
+Time Generated: 2023-12-03 23:18:56
+Event ID: 1073748864
+Event Type: 4
+
+Source Name: Service Control Manager
+Time Generated: 2023-12-03 23:16:51
+Event ID: 1073748864
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 22:56:23
+Event ID: 105
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 22:56:21
+Event ID: 105
+Event Type: 4
+
+Source Name: Service Control Manager
+Time Generated: 2023-12-03 22:36:58
+Event ID: 1073748864
+Event Type: 4
+
+Source Name: Service Control Manager
+Time Generated: 2023-12-03 22:34:53
+Event ID: 1073748864
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 21:34:00
+Event ID: 105
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 21:33:53
+Event ID: 105
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 21:33:45
+Event ID: 105
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 21:33:42
+Event ID: 105
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 21:33:41
+Event ID: 105
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-Power
+Time Generated: 2023-12-03 21:33:29
+Event ID: 105
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-General
+Time Generated: 2023-12-03 21:03:43
+Event ID: 16
+Event Type: 4
+
+Source Name: Service Control Manager
+Time Generated: 2023-12-03 20:59:17
+Event ID: 1073748864
+Event Type: 4
+
+Source Name: Microsoft-Windows-Kernel-General
+Time Generated: 2023-12-03 20:55:33
+Event ID: 1
+Event Type: 4
+
+{'name': 'System Idle Process', 'pid': 0}
+{'name': 'System', 'pid': 4}
+{'name': 'Registry', 'pid': 148}
+{'name': 'svchost.exe', 'pid': 288}
+{'name': 'smss.exe', 'pid': 576}
+{'name': 'csrss.exe', 'pid': 736}
+{'name': 'msedge.exe', 'pid': 756}
+{'name': 'svchost.exe', 'pid': 788}
+{'name': 'conhost.exe', 'pid': 804}
+{'name': 'RuntimeBroker.exe', 'pid': 824}
+{'name': 'fontdrvhost.exe', 'pid': 828}
+{'name': 'wininit.exe', 'pid': 872}
+{'name': 'csrss.exe', 'pid': 876}
+{'name': 'services.exe', 'pid': 940}
+{'name': 'lsass.exe', 'pid': 948}
+{'name': 'WUDFHost.exe', 'pid': 992}
+{'name': 'RuntimeBroker.exe', 'pid': 1016}
+{'name': 'svchost.exe', 'pid': 1060}
+{'name': 'svchost.exe', 'pid': 1080}
+{'name': 'svchost.exe', 'pid': 1132}
+{'name': 'winlogon.exe', 'pid': 1188}
+{'name': 'fontdrvhost.exe', 'pid': 1244}
+{'name': 'dwm.exe', 'pid': 1308}
+{'name': 'svchost.exe', 'pid': 1404}
+{'name': 'svchost.exe', 'pid': 1456}
+{'name': 'svchost.exe', 'pid': 1464}
+{'name': 'svchost.exe', 'pid': 1508}
+{'name': 'firefox.exe', 'pid': 1520}
+{'name': 'firefox.exe', 'pid': 1584}
+{'name': 'svchost.exe', 'pid': 1636}
+{'name': 'svchost.exe', 'pid': 1644}
+{'name': 'svchost.exe', 'pid': 1760}
+{'name': 'IntelCpHDCPSvc.exe', 'pid': 1828}
+{'name': 'svchost.exe', 'pid': 1836}
+{'name': 'svchost.exe', 'pid': 1876}
+{'name': 'svchost.exe', 'pid': 1896}
+{'name': 'svchost.exe', 'pid': 1944}
+{'name': 'svchost.exe', 'pid': 1984}
+{'name': 'svchost.exe', 'pid': 2028}
+{'name': 'IntelCpHeciSvc.exe', 'pid': 2060}
+{'name': 'svchost.exe', 'pid': 2144}
+{'name': 'Code.exe', 'pid': 2156}
+{'name': 'ApplicationFrameHost.exe', 'pid': 2196}
+{'name': 'audiodg.exe', 'pid': 2332}
+{'name': 'svchost.exe', 'pid': 2364}
+{'name': 'svchost.exe', 'pid': 2368}
+{'name': 'svchost.exe', 'pid': 2432}
+{'name': 'svchost.exe', 'pid': 2444}
+{'name': 'svchost.exe', 'pid': 2452}
+{'name': 'svchost.exe', 'pid': 2460}
+{'name': 'Maps.exe', 'pid': 2468}
+{'name': 'svchost.exe', 'pid': 2548}
+{'name': 'msedge.exe', 'pid': 2604}
+{'name': 'NVDisplay.Container.exe', 'pid': 2628}
+{'name': 'svchost.exe', 'pid': 2684}
+{'name': 'svchost.exe', 'pid': 2692}
+{'name': 'svchost.exe', 'pid': 2752}
+{'name': 'svchost.exe', 'pid': 2788}
+{'name': 'igfxCUIService.exe', 'pid': 2796}
+{'name': 'svchost.exe', 'pid': 2860}
+{'name': 'svchost.exe', 'pid': 2912}
+{'name': 'svchost.exe', 'pid': 2920}
+{'name': 'svchost.exe', 'pid': 2928}
+{'name': 'MemCompression', 'pid': 3064}
+{'name': 'svchost.exe', 'pid': 3092}
+{'name': 'svchost.exe', 'pid': 3100}
+{'name': 'conhost.exe', 'pid': 3144}
+{'name': 'svchost.exe', 'pid': 3156}
+{'name': 'msedge.exe', 'pid': 3184}
+{'name': 'svchost.exe', 'pid': 3272}
+{'name': 'firefox.exe', 'pid': 3280}
+{'name': 'jhi_service.exe', 'pid': 3292}
+{'name': 'RuntimeBroker.exe', 'pid': 3384}
+{'name': 'svchost.exe', 'pid': 3416}
+{'name': 'svchost.exe', 'pid': 3436}
+{'name': 'svchost.exe', 'pid': 3508}
+{'name': 'svchost.exe', 'pid': 3524}
+{'name': 'svchost.exe', 'pid': 3532}
+{'name': 'svchost.exe', 'pid': 3640}
+{'name': 'svchost.exe', 'pid': 3668}
+{'name': 'svchost.exe', 'pid': 3740}
+{'name': 'svchost.exe', 'pid': 3796}
+{'name': 'NVDisplay.Container.exe', 'pid': 3824}
+{'name': 'spoolsv.exe', 'pid': 3868}
+{'name': 'msedge.exe', 'pid': 3936}
+{'name': 'svchost.exe', 'pid': 3956}
+{'name': 'svchost.exe', 'pid': 4024}
+{'name': 'wlanext.exe', 'pid': 4080}
+{'name': 'RuntimeBroker.exe', 'pid': 4100}
+{'name': 'nvcontainer.exe', 'pid': 4128}
+{'name': 'SearchIndexer.exe', 'pid': 4328}
+{'name': 'svchost.exe', 'pid': 4360}
+{'name': 'svchost.exe', 'pid': 4380}
+{'name': 'OneApp.IGCC.WinService.exe', 'pid': 4388}
+{'name': 'MSIAPService.exe', 'pid': 4400}
+{'name': 'svchost.exe', 'pid': 4408}
+{'name': 'svchost.exe', 'pid': 4416}
+{'name': 'taskhostw.exe', 'pid': 4436}
+{'name': 'LightKeeperService.exe', 'pid': 4440}
+{'name': 'nvcontainer.exe', 'pid': 4452}
+{'name': 'MSIService.exe', 'pid': 4460}
+{'name': 'svchost.exe', 'pid': 4468}
+{'name': 'VoiceControl_Service.exe', 'pid': 4480}
+{'name': 'NahimicService.exe', 'pid': 4488}
+{'name': 'Mystic_Light_Service.exe', 'pid': 4500}
+{'name': 'MSI_Companion_Service.exe', 'pid': 4508}
+{'name': 'MSI_Central_Service.exe', 'pid': 4516}
+{'name': 'svchost.exe', 'pid': 4524}
+{'name': 'OfficeClickToRun.exe', 'pid': 4536}
+{'name': 'ThunderboltService.exe', 'pid': 4548}
+{'name': 'Sendevsvc.exe', 'pid': 4560}
+{'name': 'LMS.exe', 'pid': 4576}
+{'name': 'svchost.exe', 'pid': 4588}
+{'name': 'MsMpEng.exe', 'pid': 4608}
+{'name': 'svchost.exe', 'pid': 4620}
+{'name': 'Code.exe', 'pid': 4672}
+{'name': 'svchost.exe', 'pid': 4712}
+{'name': 'svchost.exe', 'pid': 4724}
+{'name': 'firefox.exe', 'pid': 4768}
+{'name': 'svchost.exe', 'pid': 4988}
+{'name': 'svchost.exe', 'pid': 5072}
+{'name': 'msedgewebview2.exe', 'pid': 5260}
+{'name': 'svchost.exe', 'pid': 5376}
+{'name': 'Microsoft.Media.Player.exe', 'pid': 6008}
+{'name': 'SearchApp.exe', 'pid': 6060}
+{'name': 'python.exe', 'pid': 6192}
+{'name': 'WmiPrvSE.exe', 'pid': 6300}
+{'name': 'NVIDIA Share.exe', 'pid': 6316}
+{'name': 'WmiPrvSE.exe', 'pid': 6328}
+{'name': 'svchost.exe', 'pid': 6380}
+{'name': 'WmiPrvSE.exe', 'pid': 6464}
+{'name': 'svchost.exe', 'pid': 6652}
+{'name': 'svchost.exe', 'pid': 6660}
+{'name': 'svchost.exe', 'pid': 6900}
+{'name': 'PresentationFontCache.exe', 'pid': 7016}
+{'name': 'Code.exe', 'pid': 7052}
+{'name': 'rundll32.exe', 'pid': 7064}
+{'name': 'powershell.exe', 'pid': 7108}
+{'name': 'sihost.exe', 'pid': 7288}
+{'name': 'nvcontainer.exe', 'pid': 7332}
+{'name': 'Code.exe', 'pid': 7376}
+{'name': 'NisSrv.exe', 'pid': 7556}
+{'name': 'msedgewebview2.exe', 'pid': 7604}
+{'name': 'firefox.exe', 'pid': 7748}
+{'name': 'dllhost.exe', 'pid': 7756}
+{'name': 'svchost.exe', 'pid': 7768}
+{'name': 'conhost.exe', 'pid': 7832}
+{'name': 'firefox.exe', 'pid': 8004}
+{'name': 'msedgewebview2.exe', 'pid': 8040}
+{'name': 'LockApp.exe', 'pid': 8108}
+{'name': 'svchost.exe', 'pid': 8224}
+{'name': 'generator.exe', 'pid': 8312}
+{'name': 'svchost.exe', 'pid': 8356}
+{'name': 'ctfmon.exe', 'pid': 8464}
+{'name': 'firefox.exe', 'pid': 8484}
+{'name': 'firefox.exe', 'pid': 8488}
+{'name': 'Code.exe', 'pid': 8524}
+{'name': 'explorer.exe', 'pid': 8664}
+{'name': 'msedgewebview2.exe', 'pid': 8680}
+{'name': 'OmApSvcBroker.exe', 'pid': 8724}
+{'name': 'svchost.exe', 'pid': 8792}
+{'name': 'igfxEM.exe', 'pid': 8892}
+{'name': 'MSI.CentralServer.exe', 'pid': 9152}
+{'name': 'msedge.exe', 'pid': 9176}
+{'name': 'conhost.exe', 'pid': 9184}
+{'name': 'powershell.exe', 'pid': 9196}
+{'name': 'msedge.exe', 'pid': 9356}
+{'name': 'RuntimeBroker.exe', 'pid': 9388}
+{'name': 'svchost.exe', 'pid': 9492}
+{'name': 'svchost.exe', 'pid': 9620}
+{'name': 'StartMenuExperienceHost.exe', 'pid': 9860}
+{'name': 'NVIDIA Web Helper.exe', 'pid': 10016}
+{'name': 'powershell.exe', 'pid': 10100}
+{'name': 'conhost.exe', 'pid': 10104}
+{'name': 'RuntimeBroker.exe', 'pid': 10140}
+{'name': 'taskhostw.exe', 'pid': 10176}
+{'name': 'ShellExperienceHost.exe', 'pid': 10292}
+{'name': 'svchost.exe', 'pid': 10320}
+{'name': 'msedge.exe', 'pid': 10668}
+{'name': 'msedge.exe', 'pid': 10684}
+{'name': 'firefox.exe', 'pid': 10740}
+{'name': 'Code.exe', 'pid': 10996}
+{'name': 'RuntimeBroker.exe', 'pid': 11160}
+{'name': 'Code.exe', 'pid': 11232}
+{'name': 'VoiceControlEngine.exe', 'pid': 11244}
+{'name': 'RuntimeBroker.exe', 'pid': 11272}
+{'name': 'NhNotifSys.exe', 'pid': 11324}
+{'name': 'firefox.exe', 'pid': 11412}
+{'name': 'firefox.exe', 'pid': 11552}
+{'name': 'msedge.exe', 'pid': 11680}
+{'name': 'SystemSettings.exe', 'pid': 11700}
+{'name': 'firefox.exe', 'pid': 11760}
+{'name': 'firefox.exe', 'pid': 11932}
+{'name': 'firefox.exe', 'pid': 11964}
+{'name': 'msedgewebview2.exe', 'pid': 12048}
+{'name': 'RuntimeBroker.exe', 'pid': 12216}
+{'name': 'firefox.exe', 'pid': 12284}
+{'name': 'SecurityHealthSystray.exe', 'pid': 12704}
+{'name': 'SecurityHealthService.exe', 'pid': 12740}
+{'name': 'ms-teams.exe', 'pid': 12772}
+{'name': 'nvsphelper64.exe', 'pid': 12980}
+{'name': 'NVIDIA Share.exe', 'pid': 13000}
+{'name': 'firefox.exe', 'pid': 13272}
+{'name': 'OneDrive.exe', 'pid': 13284}
+{'name': 'SoundTune.exe', 'pid': 13304}
+{'name': 'firefox.exe', 'pid': 13308}
+{'name': 'rundll32.exe', 'pid': 13320}
+{'name': 'firefox.exe', 'pid': 13388}
+{'name': 'Video.UI.exe', 'pid': 13568}
+{'name': 'python.exe', 'pid': 13832}
+{'name': 'UserOOBEBroker.exe', 'pid': 13860}
+{'name': 'firefox.exe', 'pid': 13896}
+{'name': 'firefox.exe', 'pid': 14000}
+{'name': 'RuntimeBroker.exe', 'pid': 14012}
+{'name': 'NVIDIA Share.exe', 'pid': 14052}
+{'name': 'svchost.exe', 'pid': 14252}
+{'name': 'svchost.exe', 'pid': 14516}
+{'name': 'TextInputHost.exe', 'pid': 14764}
+{'name': 'Code.exe', 'pid': 14792}
+{'name': 'msedgewebview2.exe', 'pid': 14852}
+{'name': 'firefox.exe', 'pid': 14856}
+{'name': 'svchost.exe', 'pid': 14924}
+{'name': 'conhost.exe', 'pid': 15096}
+{'name': 'msedgewebview2.exe', 'pid': 15316}
+{'name': 'dllhost.exe', 'pid': 15484}
+{'name': 'dllhost.exe', 'pid': 15620}
+{'name': 'msedge.exe', 'pid': 15692}
+{'name': 'msedgewebview2.exe', 'pid': 16108}
+{'name': 'Code.exe', 'pid': 16180}
+{'name': 'conhost.exe', 'pid': 16248}
+{'name': 'firefox.exe', 'pid': 16304}
+{'name': 'conhost.exe', 'pid': 16420}
+{'name': 'Code.exe', 'pid': 16516}
+{'name': 'FileCoAuth.exe', 'pid': 16528}
+{'name': 'svchost.exe', 'pid': 16604}
+{'name': 'generator.exe', 'pid': 16944}
+{'name': 'firefox.exe', 'pid': 17188}
+{'name': 'PhoneExperienceHost.exe', 'pid': 17224}
+{'name': 'DCv2.exe', 'pid': 17284}
+{'name': 'firefox.exe', 'pid': 17444}
+{'name': 'svchost.exe', 'pid': 17456}
+{'name': 'SgrmBroker.exe', 'pid': 17556}
+{'name': 'firefox.exe', 'pid': 17576}
+{'name': 'svchost.exe', 'pid': 17608}
+{'name': 'svchost.exe', 'pid': 17692}
+{'name': 'svchost.exe', 'pid': 17872}
+{'name': 'firefox.exe', 'pid': 17884}
+{'name': 'svchost.exe', 'pid': 17968}
+{'name': 'msedge.exe', 'pid': 17988}
+{'name': 'MoUsoCoreWorker.exe', 'pid': 18016}
+{'name': 'python.exe', 'pid': 18240}
+{'name': 'WUDFHost.exe', 'pid': 18348}
+{'name': 'Microsoft.SharePoint.exe', 'pid': 18352}
+{'name': 'CompPkgSrv.exe', 'pid': 18396}
