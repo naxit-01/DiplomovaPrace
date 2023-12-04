@@ -6,8 +6,6 @@ def load_config(file):
 
     print("\nROLE:")
     for key in config["ROLE"]:
-        
-        
         globals()[key] = config['ROLE'][key]
         print(f"{key} = {config['ROLE'][key]}")
 
