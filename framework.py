@@ -1,4 +1,6 @@
 import configparser
+import base64
+from secrets import compare_digest
 
 def load_config(file):
     config = configparser.ConfigParser()
@@ -52,7 +54,7 @@ class KYBERPY:
 
 cipheralgorithm = globals()[cipheralgorithm]()
 
-# Alice generates a (public, secret) key pair
+"""# Alice generates a (public, secret) key pair
 public_key, secret_key = cipheralgorithm.generate_keypair()
 
 
@@ -62,9 +64,10 @@ ciphertext, plaintext_original = cipheralgorithm.encrypt(public_key)
 # Alice decrypts Bob's ciphertext to derive the now shared secret
 plaintext_recovered = cipheralgorithm.decrypt(secret_key, ciphertext)
 
-from secrets import compare_digest
+
 if compare_digest(plaintext_original, plaintext_recovered):
     symetrical_key = plaintext_original
+"""
 
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
@@ -81,9 +84,9 @@ def desifrovani(klic, ciphertext):
     return plaintext.decode()
 
 
+"""
 
-
-"""import time
+import time
 
 # Otevření souboru v režimu pro čtení a zápis
 with open('system_logs.txt', 'r+') as f:
@@ -118,7 +121,10 @@ s.bind(server_address)
 # Naslouchání příchozím spojením
 s.listen(1)
 
+#Client cast
 def print_hello():
+    servers_ciphertext = []
+    clients_symmetrical_key = ""
     while True:
         # Každých 5 vteřin vypíše "hello"
         
@@ -133,29 +139,62 @@ def print_hello():
             #Diffie-Helman
             #Iam Alice
             # Alice generates a (public, secret) key pair
-            public_key, secret_key = ["public_key", "secret"]
-            print(f'KLIENT: Odesílání: {public_key}')
-            import json
-            data = json.dumps({"public_key": public_key})
-            s.sendall(data.encode('utf-8'))
+            public_key, secret_key = cipheralgorithm.generate_keypair()
 
-
-            # Přijetí odpovědi od serveru
-            ciphertext = s.recv(1024)
-            print(f'KLIENT: Přijatá: {ciphertext.decode("utf-8")}')
-
-            # Alice decrypts Bob's ciphertext to derive the now shared secret
-            plaintext_recovered = secret_key + ciphertext.decode("utf-8")
+            #odeslani klice (jeho kodovani, rozdeleni a po castech odeslani)
+            public_key_coded = base64.b64encode(public_key).decode('utf-8')
+            original_data = base64.b64decode(public_key_coded.encode('utf-8'))
             
+            if compare_digest(public_key, original_data):
+                print("KLIENT: klice jsou stejne")
+            print(f'KLIENT: Odesílání: public_key')
+
+            strings = [public_key_coded[i:i+1000] for i in range(0, len(public_key_coded), 1000)]
+            c = str(len(strings)).zfill(3)
+            strings = [strings[i] + str(i).zfill(3) + c for i in range(len(strings))]     
+
+            for i in range(len(strings)):
+                data = json.dumps({"public_key": strings[i]})
+                s.sendall(data.encode('utf-8'))
+
+
+            # Přijetí odpovědi od serveru (ziskavam ciphertext)
+            data = s.recv(1024)
+            #print(f'KLIENT: Přijatá: {ciphertext.decode("utf-8")}')
+
+            data = data.decode("utf-8")
+            data_received = json.loads(data)
+            if 'ciphertext' in data_received:
+                print(f"SERVER: dostali jsme cast ciphertext")
+                servers_ciphertext.append(data_received["ciphertext"])
+                number = int(data_received["ciphertext"][-3:])
+                if number == len(servers_ciphertext):
+                    print("KLIENT: jsme komplet")
+                    servers_ciphertext.sort(key=lambda s: int(s[-6:-3]))
+                    servers_ciphertext = [s[:-6] for s in servers_ciphertext]
+                    servers_ciphertext = ''.join(servers_ciphertext)
+                    servers_ciphertext = base64.b64decode(servers_ciphertext.encode('utf-8'))
+
+                    plaintext_recovered = cipheralgorithm.decrypt(secret_key, servers_ciphertext)
+                    clients_symmetrical_key = plaintext_recovered
             
             # Odeslání dat serveru
-            message = 'Toto je zpráva. Bude opakována.'
-            print(f'KLIENT: Odesílání: {message}')
-            s.sendall(message.encode('utf-8'))
+            message = 'Toto je zprava. Bude opakovana.'
+
+            # Volání funkce pro šifrování
+            encrypted_message = sifrovani(symetrical_key, message)
+
+            encrypted_message = [base64.b64encode(x).decode('utf-8') for x in encrypted_message]
+            encrypted_message = json.dumps(encrypted_message)
+            print(f'KLIENT: Odesílání: sifrovane zpravy')
+            s.sendall(encrypted_message.encode('utf-8'))
 
             # Přijetí odpovědi od serveru
             data = s.recv(1024)
             print(f'KLIENT: Přijatá: {data.decode("utf-8")}')
+
+        except Exception as e:
+            print(f"Dostali jsme jinou zprávu {e}")
 
         finally:
             # Uzavření spojení
@@ -165,32 +204,71 @@ def print_hello():
 # Spustí funkci print_hello v samostatném vlákně
 threading.Thread(target=print_hello).start()
 
+#Server cast
 while True:
     # Čekání na spojení
     print('Čekání na připojení...')
     connection, client_address = s.accept()
 
+    clients_public_key = []
+    servers_symmetrical_key = ""
     try:
         print('SERVER: Spojení z', client_address)
 
         # Přijímání dat a odesílání odpovědi
         while True:
             data = connection.recv(1024)
-            if data:
-                import json
+            if data:                
                 try:
-                    data_received = json.loads(data.decode('utf-8'))
+                    data = data.decode("utf-8")
+                    data_received = json.loads(data)
                     if 'public_key' in data_received:
-                        print(f"public_key = {data_received['public_key']}")
-                    else:
-                        print("Dostali jsme jinou zprávu")
-                except json.JSONDecodeError:
-                    print("Dostali jsme jinou zprávu")
-                
-                print('SERVER: Přijatá data: {!r}'.format(data))
-                print('SERVER: Odesílání dat zpět klientovi')
+                        print(f"SERVER: dostali jsme cast public_key")
+                        clients_public_key.append(data_received["public_key"])
+                        number = int(data_received["public_key"][-3:])
+                        if number == len(clients_public_key):
+                            print("SERVER: mame kompletni public_key klienta")
+                            clients_public_key.sort(key=lambda s: int(s[-6:-3]))
+                            clients_public_key = [s[:-6] for s in clients_public_key]
+                            clients_public_key = ''.join(clients_public_key)
+                            clients_public_key = base64.b64decode(clients_public_key.encode('utf-8'))
+                            ciphertext, plaintext_original = cipheralgorithm.encrypt(clients_public_key)
+                            server_symmetrical_key = plaintext_original
+                            
+                            #odeslani klice (jeho kodovani, rozdeleni a po castech odeslani)
+                            ciphertext_coded = base64.b64encode(ciphertext).decode('utf-8')
+                            original_data = base64.b64decode(ciphertext_coded.encode('utf-8'))
+                            if compare_digest(ciphertext, original_data):
+                                print("SERVER: klice jsou stejne, mame ciphertext")
+                            print(f'SERVER: Odesílání: ciphertext')
 
-                connection.sendall(data)
+                            strings = [ciphertext_coded[i:i+1000] for i in range(0, len(ciphertext_coded), 1000)]
+                            c = str(len(strings)).zfill(3)
+                            strings = [strings[i] + str(i).zfill(3) + c for i in range(len(strings))]     
+
+                            for i in range(len(strings)):
+                                data = json.dumps({"ciphertext": strings[i]})
+                                connection.sendall(data.encode('utf-8'))                            
+                    else:
+                        print("SERVER: Dostali jsme jinou zprávu")
+                        encryptedtext=data
+                        # Volání funkce pro dešifrování
+                        encryptedtext = json.loads(encryptedtext)
+                        #ciphertext = [base64.b64decode(x).decode('utf-8') for x in ciphertext]
+                        #ciphertext = [base64.b64decode(x.encode('utf-8')).decode('utf-8') for x in ciphertext]
+                        """for x in encryptedtext:
+                            x = base64.b64decode(x.encode('utf-8'))"""
+                        encryptedtext = [base64.b64decode(x.encode('utf-8')) for x in encryptedtext]
+                        decrypted_data = desifrovani(symetrical_key, encryptedtext)
+                        print("SERVER: Dostali jsme sifrovanou zpravu")
+                        print(f"SERVER: {decrypted_data}")
+                except json.JSONDecodeError as e:
+                    print(f"Dostali jsme jinou zprávu {e}")
+                
+                #print('SERVER: Přijatá data: {!r}'.format(data))
+                #print('SERVER: Odesílání dat zpět klientovi')
+
+                #connection.sendall(data)
             else:
                 print('SERVER: Žádná data od', client_address)
                 break
