@@ -1,0 +1,12 @@
+ok , this is how to fix this error after installing using pip
+1- download the source code
+2- cd into the source code directory
+pip install cffi, 
+pip install setuptools,
+Microsoft Visual C++ 14.0 or greater is required. Get it with "Microsoft C++ Build Tools": https://visualstudio.microsoft.com/visual-cpp-build-tools/
+
+3- sudo python3 compile.py (may take a while to compile) , this will create a _kem directory in ./pqcrypto/
+4- go to the package directory downloaded by pip , usually in /home/$USER/.local/lib/python3.11/site-packages/pqcrypto
+5- create a init.py file in kem directory
+6- remove _kem directory
+7- cp _kem from compiled source code into the downloaded package by pip
