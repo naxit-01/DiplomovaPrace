@@ -283,7 +283,8 @@ while True:
                         # Desifrovani zpravy
                         decrypted_data = symmetric_decryption(servers_symmetrical_key, list)
                         print("SERVER: Dostali jsme sifrovanou zpravu")
-                        print(f"SERVER: {decrypted_data}")
+                        print(f"SERVER: {decrypted_data}") 
+                        
                 except Exception as e:
                     print(f"Dostali jsme chybovou zprávu {e}")
                 
