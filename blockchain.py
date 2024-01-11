@@ -1,8 +1,10 @@
 import hashlib
 import json
-from time import time
+import time
 from uuid import uuid4
 import threading
+import asyncio
+import random
 
 #pip install urllib3 requests
 
@@ -17,20 +19,41 @@ import tornado.gen
 my_address = {"ip_address":"","port":"","node_identifier":""}
 node_table = []
 
+def get_time():
+
+    # Získání aktuálního času v nanosekundách
+    time_ns = time.time_ns()
+
+    # Převod na čitelný text
+    time_text = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_ns // 1000000000))
+
+    # Přidání nanosekund do textu
+    time_text += f".{time_ns % 1000000000:09d}"
+
+    # Odstranění všech nečíselných znaků z řetězce
+    time_digits = "".join(filter(str.isdigit, time_text))
+
+    # Převod na float
+    time_float = float(f"{time_digits[:-9]}.{time_digits[-9:]}")
+
+    return time_float
+
 class Blockchain:
     def __init__(self):
         self.current_logs = []
         self.chain = []
         self.nodes = set()
+        self.last_block_timestamp = 0.0
+        self.ismining = False
 
         # Vytvori prvni "genesis" blok, tak aby ty dalsi, ktere uz budou obsahovat zaznamy mely predeslou hash
         self.new_block({
             "index": 1,
-            "timestamp": time(),
+            "timestamp_start": get_time(),
             "logs": "genesis",
             "proof": 100,
             "previous_hash": "1"
-        },)
+        },get_time())
 
     def valid_chain(self, chain):
         """
@@ -49,14 +72,19 @@ class Blockchain:
             print(f'{last_block}')
             print(f'{block}')
             print("\n-----------\n")
-            # Check that the hash of the block is correct
-            last_block_hash = self.hash(last_block)
-            if block['previous_hash'] != last_block_hash:
-                return False
 
             # Check that the Proof of Work is correct
             if not self.valid_proof(block):
+                print("Invalid proof")
                 return False
+
+            # Check that the hash of the block is correct
+            last_block_hash = self.hash(last_block)
+            if block['previous_hash'] != last_block_hash:
+                print("Invalid: chain hash")
+                return False
+
+            
 
             last_block = block
             current_index += 1
@@ -97,7 +125,7 @@ class Blockchain:
 
         return False
 
-    def new_block(self, block):
+    def new_block(self, block, timestamp):
         # Vytvori novy blok v retezci
         """
         Vytvori novy block v blockchainu
@@ -111,7 +139,26 @@ class Blockchain:
         # Vymaze z currentlogs vsechny zpravy ktere uz byly zapsany do blockchainu
         self.current_logs = [slovnik for slovnik in self.current_logs if slovnik not in block["logs"]]
 
+        self.last_block_timestamp = timestamp
+
         return block
+
+    def valid_block(self,block,timestamp):
+        # Tato funkce zkontroluje jestli blok zapada do retezu, pokud ne pokusi se udelat napravu nebo blok zahodi
+        last_block = self.chain[-1]
+        if block["index"] == last_block["index"]+1:
+            # Vse je jak ma byt
+            return True
+        elif block["index"] == last_block["index"]:
+            # V retezci je blok se stejnym indexem. Ocividne doslo ke konfliktu pri posilani tezby
+            if self.last_block_timestamp>=timestamp:
+                #blok ktery je v retezci byl vytezen pozdeji nez blok, ktery chceme zaradit. Ocividne se jen drive dostal do razeni.
+                del self.chain[-1]
+                return True
+            else: 
+                #blok ktery chci priradit byl vytezen pozdeji a proto ho nechci pridat
+                return False
+        return False
 
     def new_log(self, public_key, message, signature):
         """
@@ -154,10 +201,30 @@ class Blockchain:
         block_string = json.dumps(block, sort_keys=True).encode()
         return hashlib.sha256(block_string).hexdigest()
 
-    def mining(self):
-        t = threading.currentThread()
-        while getattr(t, "do_run", True):
-            print(f"def minig() is running in the background.{time()}")
+    async def mining(self, block):
+        print(f"def mining() is running in the background.")
+        self.ismining = True
+        #tezba pobezi tak dlouho dokud se ji nezmeni parametr pro beh, nebo dokud nenajde vysledek
+        guesses = set()
+        random.seed(my_address["node_identifier"])
+        while self.valid_proof(block) is False:
+            guess = random.randint(0, 100000000)
+            guesses.add(guess)
+            block["proof"] = guess
+            await asyncio.sleep(0)
+        self.ismining = False
+
+        """while self.valid_proof(block) is False:
+            block["proof"] += 1
+            await asyncio.sleep(0)"""
+        
+        timestamp = get_time()
+        print("odesilam")
+        for node in node_table:
+            # Rekne vsem ze hra skoncila. Posle vsem svuj vytezeny blok
+            print(f"zprava pro {node["port"]}")
+            url = f"http://{node["ip_address"]}:{node["port"]}/mine/stop"
+            await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps([block,timestamp]))
 
     def proof_of_work(self, block):
         """
@@ -174,7 +241,6 @@ class Blockchain:
             block["proof"] += 1
         return block["proof"]
 
-
     def valid_proof(self, block):
         """
         Validates the Proof
@@ -186,9 +252,7 @@ class Blockchain:
         
         guess_hash = self.hash(block)
 
-        return guess_hash[:4] == "0000"
-
-
+        return guess_hash[:3] == "000"
 
 
 # Generate a globally unique address for this node
@@ -199,53 +263,82 @@ my_address["node_identifier"]=node_identifier
 blockchain = Blockchain()
 
 
-class MineHandler(tornado.web.RequestHandler):
-    def get(self):
-        # Pridame zaznam o tom kdo dany blok vytezil, neni dulezite pro funkcnost
-        blockchain.new_log(
-            public_key="",
-            message=f"Blok ukoncil node: {node_identifier}",
-            signature="",
-        )
-
-        # Vypocitam hash z predchoziho bloku
-        previous_hash = blockchain.hash(blockchain.last_block)
-
-        block = {
-            'index': len(blockchain.chain) + 1,
-            'timestamp': time(),
-            'logs': blockchain.current_logs,
-            'proof': 0, #bude zmeneno pri proof_of_work
-            'previous_hash': previous_hash,
-        }
-
-        # Spustime proof of work (tezbu)
-        proof = blockchain.proof_of_work(block)
-    
-
-        # Forge the new Block by adding it to the chain
-        block = blockchain.new_block(block)
-
-        response = {
-            'message': "New Block Forged",
-            'index': block['index'],
-            'logs': block['logs'],
-            'proof': block['proof'],
-            'previous_hash': block['previous_hash'],
-        }
-        self.write(json.dumps(response))
-
 class MiningHandler(tornado.web.RequestHandler):
-    def get(self, action):
-        global t
+    async def get(self, action):
         if action == "start":
-            t = threading.Thread(target=blockchain.mining, args=("text",))
-            t.start()
-            self.write("Tornado server has started the function def minig() in the background.")
+            if blockchain.ismining:
+                self.write("already mining")
+                return
+            else:
+                # Odesle vsem nodum prikaz at zacnou tezit, vcetne sebe
+                for node in node_table:
+                    url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
+                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
+                self.write("Nodes have started the mining in the background.")
+                return
+    
+    async def post(self, action):
+        global t
+        if action == "miner":
+            # Overime jestli prave netezime blok, pokud ano jedna se nezadanou aktivitu a nebudeme na ni reagovat
+            if blockchain.ismining:
+                self.write("already mining")
+                return
+            # Pridame zaznam o tom kdo dany blok vytezil, neni dulezite pro funkcnost
+            blockchain.new_log(
+                public_key="",
+                message=f"Blok ukoncil node: {my_address["node_identifier"]}",
+                signature="",
+            )
+
+            # Vypocitam hash z predchoziho bloku
+            previous_hash = blockchain.hash(blockchain.last_block)
+
+            block = {
+                'index': len(blockchain.chain) + 1,
+                'timestamp_start': get_time(),
+                'logs': blockchain.current_logs,
+                'proof': 0, #bude zmeneno pri proof_of_work
+                'previous_hash': previous_hash,
+            }
+
+            t = asyncio.create_task(blockchain.mining(block))
+            print("mining")
+        elif action == "mined":
+            values = json.loads(self.request.body.decode('utf-8'))
+
+            # Rekne vsem ze hra skoncila. Posle vsem svuj vytezeny blok
+            for node in node_table:
+                    url = f"http://{node["ip_address"]}:{node["port"]}/mine/stop"
+                    await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps(values))
+
+            # Forge the new Block by adding it to the chain
+            block = blockchain.new_block(values)
+
+            response = {
+                'message': "New Block Forged",
+                'index': block['index'],
+                'logs': block['logs'],
+                'proof': block['proof'],
+                'previous_hash': block['previous_hash'],
+            }
+            self.write(json.dumps(response))
         elif action == "stop":
-            t.do_run = False
-            t.join()
-            self.write("Tornado server has stopped the function def minig() running in the background.")
+            if blockchain.ismining:
+                t.cancel()
+                blockchain.ismining = False
+            self.write("Tornado server has stopped the mining in the background.")
+
+            block, timestamp_end = json.loads(self.request.body.decode('utf-8'))
+
+            if blockchain.valid_block(block, timestamp_end):
+                self.write("block is valid")
+                # Forge the new Block by adding it to the chain
+                block = blockchain.new_block(block, timestamp_end)
+
+                print(f"blockadded\n{blockchain.hash(block)}\n{json.dumps(block)}")
+            else:
+                self.write("invalid block")
 
 class New_logHandler(tornado.web.RequestHandler):
     async def post(self):
@@ -265,7 +358,6 @@ class New_logHandler(tornado.web.RequestHandler):
                 if (node["ip_address"] == my_address['ip_address'] and node["port"] == my_address["port"]) is False:
                     url = f"http://{node["ip_address"]}:{node["port"]}/logs/new"
                     await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps(values))
-                    #requests.post(url, data=json.dumps(values)) 
             return 
                     
         else:
@@ -326,15 +418,10 @@ class Node_Get_node_tableHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(json.dumps(node_table))
 
-def mining():
-    t = threading.currentThread()
-    while getattr(t, "do_run", True):
-        print(f"def minig() is running in the background.{time()}")
-
 def make_app():
     return tornado.web.Application([
-        (r"/mine", MineHandler),
-        (r"/mine/(start|stop)", MiningHandler),
+        #(r"/mine", MineHandler),
+        (r"/mine/(start|stop|mined|miner)", MiningHandler),
         (r"/logs/new", New_logHandler),
         (r"/chain", ChainHandler),
 
@@ -349,17 +436,22 @@ async def register_node_async():
         # Na predem definovany sousedni nod (je jedno, ktery to bude) odeslu svoji registraci
 
         # Pozdeji bude predelano, v souboru config bude adresa nejblizsiho existujiciho nodu
-        url = "http://localhost:9999/nodes/register_node"
+        ip_address = "localhost"
+        port = "9999"
 
         data = {
         "ip_address": my_address['ip_address'],
         "port": my_address['port'],
         "node_identifier":my_address["node_identifier"]
         }
-        await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps(data))
+
+        # Odeslu svoji registraci na node
+        await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/nodes/register_node", method='POST', body=json.dumps(data))
+
+        # Ziskam od sousedniho nodu aktualni blockchain, tim prepisu ten svuj. Prvni node prepise sam sebe
+        blockchain.chain = (json.loads((await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/chain", method='GET')).body.decode('utf-8')))["chain"]
 
 if __name__ == "__main__":
-    import random
     app = make_app()
     # Nejprve se pokusim spustit server na portu 9999, bude se mi hodit pro debugovani, pozdeji nebude mit smysl
     port=9999
@@ -378,8 +470,9 @@ if __name__ == "__main__":
 
     my_address['ip_address']="localhost"
     my_address['port']=port
+    my_address['node_identifier']=my_address["ip_address"]+":"+str(my_address["port"])+"_"+my_address["node_identifier"]
 
     # Odeslu zadost o registraci do blockchain site
     tornado.ioloop.IOLoop.current().call_later(1, register_node_async)
-    
+
     tornado.ioloop.IOLoop.current().start()

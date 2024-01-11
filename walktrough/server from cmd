@@ -1,2 +1,2 @@
-pokud chci spustit server na prikazovem radku tak dostanu do repozitarove slozky a spustim prikaz .venv\Scripts\activate.bat
+nastavit irtualni prostredi .venv\Scripts\activate.bat
 potom mohu spustit prikaz python server.py
