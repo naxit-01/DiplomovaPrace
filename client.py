@@ -19,25 +19,12 @@ def load_config(file):
 load_config('config.ini')
 
 from modules.KEMalgorithm import *
+from modules.signatures import *
 
-cipheralgorithm = globals()[cipheralgorithm]()
+kem_algorithm = globals()[kemalgorithm]()
+sign_algorithm = globals()[signalgorithm]()
 
 from modules.symmetric import symmetric_encryption,symmetric_decryption
-
-
-'''# Alice generates a (public, secret) key pair
-public_key, secret_key = cipheralgorithm.generate_keypair()
-
-
-# Bob derives a secret (the plaintext) and encrypts it with Alice's public key to produce a ciphertext
-ciphertext, plaintext_original = cipheralgorithm.encrypt(public_key)
-
-# Alice decrypts Bob's ciphertext to derive the now shared secret
-plaintext_recovered = cipheralgorithm.decrypt(secret_key, ciphertext)
-
-if compare_digest(plaintext_original, plaintext_recovered):
-    symetrical_key = plaintext_original'''
-
 
 import tornado.ioloop
 import tornado.web
@@ -57,7 +44,7 @@ def make_app():
 
 def send_logs():
     
-    public_key, secret_key = cipheralgorithm.generate_keypair()
+    public_key, secret_key = kem_algorithm.generate_keypair()
 
     import requests
     import json
@@ -69,11 +56,26 @@ def send_logs():
 
         #ze sdileneho tajemstvi a privatniho klice ziskava symetricky klic
         ciphertext=response["ciphertext"]
-        plaintext_recovered = cipheralgorithm.decrypt(secret_key, ciphertext)
+        plaintext_recovered = kem_algorithm.decrypt(secret_key, ciphertext)
         symmetrical_key = plaintext_recovered
 
-        #sifrije zpravu pomoci symetrickeho klice a posila ji na server
-        encrypted_message = symmetric_encryption(symmetrical_key, "correct message correct")
+        #zprava
+        message = "correct message correct"
+
+        # generovani klicu pro podepsani zpravy
+        sign_public_key, sign_secret_key = sign_algorithm.generate_keypair()
+
+        # podepsani zpravy pomoci privatniho klice
+        signature = sign_algorithm.sign(sign_secret_key, message)
+
+        signed_message ={
+            "public_key":sign_public_key,
+            "message":message,
+            "signature":signature
+        }
+
+        #sifrovani zpravy pomoci symetrickeho klice a posila ji na server
+        encrypted_message = symmetric_encryption(symmetrical_key, json.dumps(signed_message))
         data = {'message_type':"encrypted_message",'encrypted_message': encrypted_message}
         response = requests.post(url, data=json.dumps(data)).text
 
