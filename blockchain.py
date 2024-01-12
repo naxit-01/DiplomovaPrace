@@ -153,6 +153,8 @@ class Blockchain:
             # V retezci je blok se stejnym indexem. Ocividne doslo ke konfliktu pri posilani tezby
             if self.last_block_timestamp>=timestamp:
                 #blok ktery je v retezci byl vytezen pozdeji nez blok, ktery chceme zaradit. Ocividne se jen drive dostal do razeni.
+                # nez blok smazeme tak zaradime vsechny jeho zpravy zpatky do zasobniku. (je dost mozne ze blok, ktery ho vyradil obsahuje stejne zpravy, ale za prve by nam to hodilo chybu a za druhe se to neprojevi, protoze ty jeho zpravy pak stejne budeme mazat)
+                #TODO pridat zpravy do self.current_logs z chain[-1]["logs"]
                 del self.chain[-1]
                 return True
             else: 
