@@ -71,4 +71,4 @@ Pri nizke narocnosti dukazu a lokalni siti je rozdil mezi vytezenim vlastniho bl
 Ve chvili kdy je potreba zkontrolovat spravnost retezu zavola se funkce valid_chain() ve tride Blockchain. Tato funkce projede blok po bloku a kontroluje dve podminky. 1. Je v kazdem bloku spravna hodnota dukazu? 2. Odpovida predchozi hash v bloku skutecne hashi predesleho bloku? Pokud jsou obe kriteria naplnena pro kazdy blok v retezu, tak je retez povazovan za validni a muze s nim byt dal zachazeno. Napriklad vzit ho pro vytahnuti zprav pro uzivatelske pouziti, nebo pro rozhodovani o hlavnim retezu v siti. 
 
 5. Hlavni retez v siti  
-TODO: 
+Donutim vsechny prestat tezit. Zahodit praci (je to random je to jedno) Pokud nejaky node dostane informaci pozdeji nez nekdo jiny, nevadi. Proste posle vsem svuj block a jede se dal. Vsem poslu zpravu prestan tezit a od vsech pockam na odpoved "prestal jsem" tim si i overim ze ubehl dostatecny cas na to aby node ktery vytezi block ho poslal ostatnim. 

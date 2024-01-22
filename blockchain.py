@@ -5,6 +5,8 @@ from uuid import uuid4
 import threading
 import asyncio
 import random
+from collections import Counter
+import configparser
 
 #pip install urllib3 requests
 
@@ -18,6 +20,27 @@ import tornado.gen
 
 my_address = {"ip_address":"","port":"","node_identifier":""}
 node_table = []
+
+def load_config(file):
+    config = configparser.ConfigParser()
+    config.read(file)
+
+    print("\nROLE:")
+    for key in config["ROLE"]:
+        globals()[key] = config['ROLE'][key]
+        print(f"{key} = {config['ROLE'][key]}")
+
+    print("\nalgorithm:")
+    for key in config["algorithm"]:
+        globals()[key] = config['algorithm'][key]
+        print(f"{key} = {config['algorithm'][key]}")
+
+    print("\nNODE:")
+    for key in config["NODE"]:
+        globals()[key] = config['NODE'][key]
+        print(f"{key} = {config['NODE'][key]}")
+
+load_config('config.ini')
 
 def get_time():
 
@@ -42,9 +65,10 @@ class Blockchain:
     def __init__(self):
         self.current_logs = []
         self.chain = []
-        self.nodes = set()
         self.last_block_timestamp = 0.0
         self.ismining = False
+        self.isresolving = False
+        self.complexity = int(complexity)
 
         # Vytvori prvni "genesis" blok, tak aby ty dalsi, ktere uz budou obsahovat zaznamy mely predeslou hash
         self.new_block({
@@ -69,9 +93,9 @@ class Blockchain:
 
         while current_index < len(chain):
             block = chain[current_index]
-            print(f'{last_block}')
-            print(f'{block}')
-            print("\n-----------\n")
+            #print(f'{last_block}')
+            #print(f'{block}')
+            #print("\n-----------\n")
 
             # Check that the Proof of Work is correct
             if not self.valid_proof(block):
@@ -91,40 +115,36 @@ class Blockchain:
 
         return True
 
-    def resolve_conflicts(self):
-        """
-        This is our consensus algorithm, it resolves conflicts
-        by replacing our chain with the longest one in the network.
+    async def resolve_conflicts(self):
+        responses = []
 
-        :return: True if our chain was replaced, False if not
-        """
+        # Ziska hashe retezu od vsech nodu 
+        for node in node_table:
+            response = await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{node["ip_address"]}:{node["port"]}/chain/hash', method='GET')
+            responses.append({"hash":response.body.decode(),"ip_address":node["ip_address"],"port":node["port"]})
 
-        neighbours = self.nodes
-        new_chain = None
+        # Spočítejte výskyty každého hashe
+        hash_counter = Counter(item['hash'] for item in responses)
 
-        # We're only looking for chains longer than ours
-        max_length = len(self.chain)
+        # Získání dvou nejvyšších četností
+        top_two_counts = hash_counter.most_common(2)
 
-        # Grab and verify the chains from all the nodes in our network
-        for node in neighbours:
-            response = requests.get(f'http://{node}/chain')
-
-            if response.status_code == 200:
-                length = response.json()['length']
-                chain = response.json()['chain']
-
-                # Check if the length is longer and the chain is valid
-                if length > max_length and self.valid_chain(chain):
-                    max_length = length
-                    new_chain = chain
-
-        # Replace our chain if we discovered a new, valid chain longer than ours
-        if new_chain:
-            self.chain = new_chain
-            return True
-
-        return False
-
+        # Zjistění, zda je nejvyšší prvek nejvyšší absolutně
+        if len(top_two_counts) == 2 and top_two_counts[0][1] == top_two_counts[1][1]:
+            print("První a druhý nejvyšší prvek mají stejnou četnost, není nejvyšší absolutně.")
+            return False
+        else:
+            print("První prvek je nejvyšší absolutně.")
+            if top_two_counts[0][0] == self.hash(self.chain): # TODO zmenit na ==
+                # My mame spravny chain
+                print("my mame spravny chain")
+                return True
+            for response in responses:
+                print("Museli jsme chain zmenit")
+                if top_two_counts[0][0] == response["hash"]:
+                    self.chain = (json.loads((await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{response["ip_address"]}:{response["port"]}/chain/get', method='GET')).body.decode('utf-8')))["chain"]
+                    return False
+                    
     def new_block(self, block, timestamp):
         # Vytvori novy blok v retezci
         """
@@ -144,22 +164,67 @@ class Blockchain:
         return block
 
     def valid_block(self,block,timestamp):
-        # Tato funkce zkontroluje jestli blok zapada do retezu, pokud ne pokusi se udelat napravu nebo blok zahodi
+        print("validuji block")
+        # Nejprve overim zda blok vubec muze byt pridan do retezu, tedy jestli odpovida dukaz
+        if self.valid_proof(block): pass # Vse v poradku
+        else: 
+            print("FalseValidBlock1 - invalid_proof") 
+            return False # Block nema spravne vypocitany dukaz, neni platnym blokem
+
+        
+
+
+        # Tato funkce zkontroluje jestli blok zapada indexove do retezu, pokud ne pokusi se udelat napravu nebo blok zahodi
         last_block = self.chain[-1]
         if block["index"] == last_block["index"]+1:
-            # Vse je jak ma byt
-            return True
+            if self.hash(last_block) == block["previous_hash"]: return True # Vse  poradku
+            else:
+                print("FalseValidBlock2 - no_connection[-1]") 
+                return False # Block nesplnuje navaznost hashi na sebe, nema hash predesleho blocku
+
         elif block["index"] == last_block["index"]:
-            # V retezci je blok se stejnym indexem. Ocividne doslo ke konfliktu pri posilani tezby
+            # V retezci je blok se stejnym indexem. Ocividne doslo ke konfliktu pri posilani tezby   
             if self.last_block_timestamp>=timestamp:
-                #blok ktery je v retezci byl vytezen pozdeji nez blok, ktery chceme zaradit. Ocividne se jen drive dostal do razeni.
-                # nez blok smazeme tak zaradime vsechny jeho zpravy zpatky do zasobniku. (je dost mozne ze blok, ktery ho vyradil obsahuje stejne zpravy, ale za prve by nam to hodilo chybu a za druhe se to neprojevi, protoze ty jeho zpravy pak stejne budeme mazat)
-                #TODO pridat zpravy do self.current_logs z chain[-1]["logs"]
-                del self.chain[-1]
-                return True
+                # Nejprve overim zda blok vubec mohu pridat do retezu, tedy zda previous_hash odpovida hashe z predposledniho bloku
+                if self.hash(self.chain[-2]) == block["previous_hash"]:
+                    #blok ktery je v retezci byl vytezen pozdeji nez blok, ktery chceme zaradit. Ocividne se jen drive dostal do razeni.
+                    # nez blok smazeme tak zaradime vsechny jeho zpravy zpatky do zasobniku. (je dost mozne ze blok, ktery ho vyradil obsahuje stejne zpravy, ale za prve by nam to hodilo chybu a za druhe se to neprojevi, protoze ty jeho zpravy pak stejne budeme mazat)
+                    try:
+                        logs = self.current_logs  # Uložit aktuální logy do nové proměnné
+                        self.current_logs = []  # Vyprázdnit aktuální logy
+
+                        # Převést slovníky na řetězce
+                        logs = [json.dumps(item) for item in logs]
+
+                        # Přidat logy z posledního bloku
+                        for item in self.chain[-1]["logs"]:
+                            logs.append(json.dumps(item))
+
+                        # Odstranit duplikáty a převést zpět na seznam slovníků
+                        logs = list(set(logs))
+                        logs = [json.loads(item) for item in logs]
+
+                        # Přidat nové logy k aktuálním
+                        self.current_logs = self.current_logs + logs
+
+                    except Exception as e: 
+                        print(f"error {e}")
+                        prom1 = self.chain[-1]["logs"]
+                        prom1 = set(prom1)
+                        prom2 = self.current_logs
+                        prom3 = (prom1.union(prom2))
+                        print("error")
+
+                    del self.chain[-1]
+                    return True
+                else: 
+                    print("FalseValidBlock3 - no_connection[-2]") 
+                    return False # Neodpovida navaznost hashi
             else: 
                 #blok ktery chci priradit byl vytezen pozdeji a proto ho nechci pridat
+                print("FalseValidBlock4 - latter") 
                 return False
+        print("FalseValidBlock4 - what_the_fuck_index")
         return False
 
     def new_log(self, public_key, message, signature):
@@ -210,7 +275,11 @@ class Blockchain:
         guesses = set()
         random.seed(my_address["node_identifier"])
         while self.valid_proof(block) is False:
-            guess = random.randint(0, 100000000)
+            if self.isresolving == True:
+                self.ismining = False
+                print("mining has been stopped by resolving")
+                return
+            guess = random.randint(0, 100 ** self.complexity)
             guesses.add(guess)
             block["proof"] = guess
             await asyncio.sleep(0)
@@ -226,22 +295,7 @@ class Blockchain:
             # Rekne vsem ze hra skoncila. Posle vsem svuj vytezeny blok
             print(f"zprava pro {node["port"]}")
             url = f"http://{node["ip_address"]}:{node["port"]}/mine/stop"
-            await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps([block,timestamp]))
-
-    def proof_of_work(self, block):
-        """
-        Simple Proof of Work Algorithm:
-
-         - Find a number p' such that hash(pp') contains leading 4 zeroes
-         - Where p is the previous proof, and p' is the new proof
-         
-        :param last_block: <dict> last Block
-        :return: <int>
-        """
-
-        while self.valid_proof(block) is False:
-            block["proof"] += 1
-        return block["proof"]
+            tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps([block,timestamp]))
 
     def valid_proof(self, block):
         """
@@ -251,10 +305,10 @@ class Blockchain:
         :return: <bool> True if correct, False if not.
 
         """
-        
         guess_hash = self.hash(block)
 
-        return guess_hash[:3] == "000"
+        return guess_hash.startswith("0" * self.complexity)
+
 
 
 # Generate a globally unique address for this node
@@ -271,6 +325,9 @@ class MiningHandler(tornado.web.RequestHandler):
             if blockchain.ismining:
                 self.write("already mining")
                 return
+            if blockchain.isresolving:
+                self.write("already resolving")
+                return
             else:
                 # Odesle vsem nodum prikaz at zacnou tezit, vcetne sebe
                 for node in node_table:
@@ -286,11 +343,14 @@ class MiningHandler(tornado.web.RequestHandler):
             if blockchain.ismining:
                 self.write("already mining")
                 return
+            if blockchain.isresolving:
+                self.write("already resolving")
+                return
             # Pridame zaznam o tom kdo dany blok vytezil, neni dulezite pro funkcnost
             blockchain.new_log(
-                public_key="",
-                message=f"Blok ukoncil node: {my_address["node_identifier"]}",
-                signature="",
+                public_key="public",
+                message=f"Blok ukoncil node: {my_address["node_identifier"]}!",
+                signature="sign",
             )
 
             # Vypocitam hash z predchoziho bloku
@@ -300,34 +360,18 @@ class MiningHandler(tornado.web.RequestHandler):
                 'index': len(blockchain.chain) + 1,
                 'timestamp_start': get_time(),
                 'logs': blockchain.current_logs,
-                'proof': 0, #bude zmeneno pri proof_of_work
+                'proof': 0, #bude zmeneno pri tezbe
                 'previous_hash': previous_hash,
             }
 
             t = asyncio.create_task(blockchain.mining(block))
             print("mining")
-        elif action == "mined":
-            values = json.loads(self.request.body.decode('utf-8'))
-
-            # Rekne vsem ze hra skoncila. Posle vsem svuj vytezeny blok
-            for node in node_table:
-                    url = f"http://{node["ip_address"]}:{node["port"]}/mine/stop"
-                    await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps(values))
-
-            # Forge the new Block by adding it to the chain
-            block = blockchain.new_block(values)
-
-            response = {
-                'message': "New Block Forged",
-                'index': block['index'],
-                'logs': block['logs'],
-                'proof': block['proof'],
-                'previous_hash': block['previous_hash'],
-            }
-            self.write(json.dumps(response))
+    
         elif action == "stop":
             if blockchain.ismining:
+                # Pokud zprava neprisla ode me, tak jeste tezim. To znamena ze nekdo byl rychlejsi a ja uz tezit nemusim.
                 t.cancel()
+                await asyncio.sleep(0)
                 blockchain.ismining = False
             self.write("Tornado server has stopped the mining in the background.")
 
@@ -338,9 +382,10 @@ class MiningHandler(tornado.web.RequestHandler):
                 # Forge the new Block by adding it to the chain
                 block = blockchain.new_block(block, timestamp_end)
 
-                print(f"blockadded\n{blockchain.hash(block)}\n{json.dumps(block)}")
+                #print(f"blockadded\n{blockchain.hash(block)}\n{json.dumps(block)}")
             else:
                 self.write("invalid block")
+            await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{my_address["ip_address"]}:{my_address["port"]}/mine/start', method='GET')
 
 class New_logHandler(tornado.web.RequestHandler):
     async def post(self):
@@ -367,32 +412,64 @@ class New_logHandler(tornado.web.RequestHandler):
             return
 
 class ChainHandler(tornado.web.RequestHandler):
-    def get(self):
-        if blockchain.valid_chain(blockchain.chain):
-            response = {
-                'chain': blockchain.chain,
-                'length': len(blockchain.chain),
-            }
-            self.write(json.dumps(response))
-        else: self.write("Chain is invalid")
+    async def get(self, action):
+        if action == "get":
+            if blockchain.valid_chain(blockchain.chain):
+                response = {
+                    'chain': blockchain.chain,
+                    'length': len(blockchain.chain),
+                }
+                self.write(json.dumps(response))
+            else: self.write("Chain is invalid")
+        
+        elif action == "resolve":
+            if blockchain.isresolving:
+                self.write("already resolving")
+                return
+            else:
+                # Odesle vsem nodum prikaz at zacnou porovnavat retezy, vcetne sebe
+                for node in node_table:
+                    url = f"http://{node["ip_address"]}:{node["port"]}/chain/resolver"
+                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='GET')
+                self.write("Nodes have started the resolving in the background.")
+                return
 
-class Nodes_resolveHandler(tornado.web.RequestHandler):
-    def get(self):
-        replaced = blockchain.resolve_conflicts()
+        elif action == "resolver":
+            """
+            Tento algoritmus vyhodnoti, ktery retez ma majoritni zastoupeni a tento retez pak zvoli za hlavni.
 
-        if replaced:
-            response = {
-                'message': 'Our chain was replaced',
-                'new_chain': blockchain.chain
-            }
-        else:
-            response = {
-                'message': 'Our chain is authoritative',
-                'chain': blockchain.chain
-            }
 
-        self.write(json.dumps(response))      
+            :return: True if our chain was replaced, False if not
+            """
+            
+            blockchain.isresolving = True
 
+            while blockchain.ismining: 
+                #pockam nez dobehne tezba
+                await asyncio.sleep(0.5)
+            await asyncio.sleep(2)
+            replaced = await blockchain.resolve_conflicts()
+            if replaced:
+                response = {
+                    'message': 'Our chain is authoritative',
+                    'chain': blockchain.chain,
+                    'hash_chain':blockchain.hash(blockchain.chain)
+                }
+            else:
+                response = {
+                    'message': 'Our chain was replaced',
+                    'new_chain': blockchain.chain,
+                    'hash_chain':blockchain.hash(blockchain.chain)
+                }
+
+            self.write(json.dumps(response))  
+
+            blockchain.isresolving = False # Opet zapnu moznost tezby
+            
+        elif action == "hash":
+            self.write(blockchain.hash(blockchain.chain)) 
+        
+        
 class Nodes_Set_node_tableHandler(tornado.web.RequestHandler):
     def post(self):
         # Prijme Node_table a updatuje svoji tabulku
@@ -423,12 +500,10 @@ class Node_Get_node_tableHandler(tornado.web.RequestHandler):
 def make_app():
     return tornado.web.Application([
         #(r"/mine", MineHandler),
-        (r"/mine/(start|stop|mined|miner)", MiningHandler),
+        (r"/mine/(start|stop|miner)", MiningHandler),
         (r"/logs/new", New_logHandler),
         (r"/chain", ChainHandler),
-
-        (r"/nodes/resolve", Nodes_resolveHandler),
-
+        (r"/chain/(get|resolver|resolve|hash)", ChainHandler),
         (r"/nodes/set_nodetable",Nodes_Set_node_tableHandler),
         (r"/nodes/register_node", Node_Register_nodeHandler),
         (r"/nodes/get_nodetable", Node_Get_node_tableHandler)
@@ -438,8 +513,8 @@ async def register_node_async():
         # Na predem definovany sousedni nod (je jedno, ktery to bude) odeslu svoji registraci
 
         # Pozdeji bude predelano, v souboru config bude adresa nejblizsiho existujiciho nodu
-        ip_address = "localhost"
-        port = "9999"
+        ip_address = neighbour_ip_address
+        port = neighbour_port
 
         data = {
         "ip_address": my_address['ip_address'],
@@ -451,7 +526,7 @@ async def register_node_async():
         await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/nodes/register_node", method='POST', body=json.dumps(data))
 
         # Ziskam od sousedniho nodu aktualni blockchain, tim prepisu ten svuj. Prvni node prepise sam sebe
-        blockchain.chain = (json.loads((await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/chain", method='GET')).body.decode('utf-8')))["chain"]
+        blockchain.chain = (json.loads((await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/chain/get", method='GET')).body.decode('utf-8')))["chain"]
 
 if __name__ == "__main__":
     app = make_app()
