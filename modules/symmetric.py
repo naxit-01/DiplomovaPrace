@@ -4,7 +4,13 @@ import base64
 
 
 def symmetric_encryption(key, plaintext):
-    
+    # Oddělení záhlaví a závěrky a získání samotného klíče
+    key_start = "-----BEGIN SYMMETRIC KEY-----"
+    key_end = "-----END SYMMETRIC KEY-----"
+
+    # Získání klíče
+    key = key.split(key_start)[1].split(key_end)[0].strip()
+
     #symetricke sifrovani
     key = base64.b64decode(key.encode('utf-8'))
     cipher = AES.new(key, AES.MODE_CBC)
@@ -12,6 +18,13 @@ def symmetric_encryption(key, plaintext):
     return [base64.b64encode(cipher.iv).decode('utf-8'), base64.b64encode(ciphertext).decode('utf-8')]
 
 def symmetric_decryption(key, dataset):
+    # Oddělení záhlaví a závěrky a získání samotného klíče
+    key_start = "-----BEGIN SYMMETRIC KEY-----"
+    key_end = "-----END SYMMETRIC KEY-----"
+
+    # Získání klíče
+    key = key.split(key_start)[1].split(key_end)[0].strip()
+    
     key = base64.b64decode(key.encode('utf-8'))
     iv, cryptedtext = dataset
     iv = base64.b64decode(iv.encode('utf-8'))

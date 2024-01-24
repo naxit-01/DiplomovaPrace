@@ -1,47 +1,38 @@
 import configparser
 import base64
 from secrets import compare_digest
-
-def load_config(file):
-    config = configparser.ConfigParser()
-    config.read(file)
-
-    print("\nROLE:")
-    for key in config["ROLE"]:
-        globals()[key] = config['ROLE'][key]
-        print(f"{key} = {config['ROLE'][key]}")
-
-    print("\nalgorithm:")
-    for key in config["algorithm"]:
-        globals()[key] = config['algorithm'][key]
-        print(f"{key} = {config['algorithm'][key]}")
-
-load_config('config.ini')
-
-from modules.KEMalgorithm import *
-from modules.signatures import *
-
-kem_algorithm = globals()[kemalgorithm]()
-sign_algorithm = globals()[signalgorithm]()
-
-from modules.symmetric import symmetric_encryption,symmetric_decryption
-
+import json
+import datetime
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.gen
-import json
+
+from modules import get_time, load_config, create_jwt, read_jwt, check_jwt, ask_public_key, get_sign_private_key
+
+NODE, ALGORITHM, CA = load_config('config.ini')
+
+from modules.KEMalgorithm import *
+from modules.signatures import *
+
+kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
+sign_algorithm = globals()[ALGORITHM["signalgorithm"]]()
+
+from modules.symmetric import symmetric_encryption,symmetric_decryption
+
+my_address = {}
+
+sign_private_key = ""
+
 
 
 class MainHandler(tornado.web.RequestHandler):
     symmetrical_key = ""
-    def get(self):
-        self.write("Tornado server is running")
-
-    def post(self):
-        data = json.loads(self.request.body.decode('utf-8'))
-        match data["message_type"]:
+    async def post(self):
+        request_type = self.request.headers.get('request_type')
+        match request_type:
             case "KEM_public_key":
+                data = json.loads(self.request.body.decode('utf-8'))
                 # prijima verejny klic od klienta a vytvori z nej sdilene tajemstvi
                 ciphertext, plaintext_original = kem_algorithm.encrypt(data["public_key"])
 
@@ -53,39 +44,69 @@ class MainHandler(tornado.web.RequestHandler):
                     "ciphertext":ciphertext
                 }
                 self.write(json.dumps(response))
-                
-            case "encrypted_message":
-                # prijima zasifrovanou zpravu a pomoci symetrickeho klice ji desifruje
-                decrypted_data = symmetric_decryption(MainHandler.symmetrical_key, data["encrypted_message"])
-                signed_data = json.loads(decrypted_data)
-
-                # overeni podpisu pomoci prijateho podpisoveho verejneho klice
-                if sign_algorithm.verify(signed_data["public_key"],signed_data["message"],signed_data["signature"]):
-                    print(signed_data["message"])
-                    self.write("thanks")
+            case "encrypted_request":
+                request = self.request.headers.get('request')
+                response = ""
+                # Získání těla (body) požadavku
+                encrypted_data = self.request.body
+                if encrypted_data:
+                    # Pokud jsou v těle požadavku nějaká data
+                    # print("V těle požadavku jsou data.")
+                    encrypted_data=json.loads(encrypted_data.decode())
+                    # Najdu si verejny klic v databazi
+                    subject = self.request.headers.get('hostname')
+                    pk = (ask_public_key(subject,sign_private_key, my_address, kem_algorithm, CA, ALGORITHM, sign_algorithm))["public_key"]
+                    jwt = symmetric_decryption(MainHandler.symmetrical_key, encrypted_data["encrypted_message"])
+                    if check_jwt(jwt, pk, sign_algorithm) is True:
+                        data = read_jwt(jwt)
+                   
                 else:
-                    self.write("invalid signature")
-            case 2:
-                return "dva"
-            case _:
-                print("inc")
-                self.write("incorrect values")        
+                    # Pokud není v těle požadavku žádná data
+                    # print("V těle požadavku nejsou žádná data.")
+                    pass
+                
+
+                match request:
+                    case "message":
+                        subject = self.request.headers.get('hostname')
+                        print(f"{subject} sent message: {data[1]["payload"]["message"]}")
+                        header,payload,response_jwt = create_jwt(ALGORITHM["signalgorithm"], 
+                                                                 f"{CA["ca_ip_address"]}:{CA["ca_port"]}", 
+                                                                 {"message":"thanks"}, sign_algorithm,
+                                                                 sign_private_key)
+                        response = response_jwt
+                        
+
+                # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
+                encrypted_response = symmetric_encryption(MainHandler.symmetrical_key, response)
+                self.write(json.dumps({"data":encrypted_response}))
 
 def make_app():
     return tornado.web.Application([
         (r"/", MainHandler),
     ])
 
-def print_alive():
-    print("I am alive")
-    tornado.ioloop.IOLoop.current().call_later(5, print_alive)
-
-
 if __name__ == "__main__":
     app = make_app()
-    app.listen(9999)
-    print("Tornado server is listening on port 9999")
-    #tornado.ioloop.IOLoop.current().call_later(0, print_alive)
+    # Nejprve se pokusim spustit server na portu 8889, bude se mi hodit pro debugovani, pozdeji nebude mit smysl
+    port=9999
+    try:
+        app.listen(port)
+        print(f"Server is listening on port 9999")
+    except:
+        import random
+        while True:
+            port = random.randint(9991, 9999)
+            try:
+                app.listen(port)
+                print(f"Server is listening on port {port}")
+                break
+            except: 
+                continue
+
+    my_address['ip_address']="localhost"
+    my_address['port']=port
+
+    sign_private_key = get_sign_private_key(my_address, CA, sign_algorithm, kem_algorithm)
+
     tornado.ioloop.IOLoop.current().start()
-
-

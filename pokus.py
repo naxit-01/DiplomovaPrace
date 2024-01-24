@@ -1,10 +1,2 @@
-from pathlib import Path
-
-# Cesta k aktuálnímu adresáři (tam, kde se spouští skript)
-current_directory = Path.cwd()
-
-# Cesta k souboru ve stejném adresáři jako skript
-file_path = f"{current_directory}\\config.ini"
-
-# Vypsání cesty
-print(file_path)
+prom = 'ALkv9ImsIPbcVdsgAKUBRg/GdO/VqcWOQbWBxlsIGS/6rE0QTiDdm01X4REmwKxvNdPJ7UP0du+TAFVeENHO9Q=='
+print(len(prom))

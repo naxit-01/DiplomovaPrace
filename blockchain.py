@@ -14,7 +14,7 @@ from modules import get_time, load_config
 # pip install urllib3 requests
 # https://medium.com/@vanflymen/learn-blockchains-by-building-one-117428612f46
 
-NODE, ALGORITHM = load_config('config.ini')
+NODE, ALGORITHM, CA = load_config('config.ini')
 
 # Generate a globally unique address for this node
 my_address = {
