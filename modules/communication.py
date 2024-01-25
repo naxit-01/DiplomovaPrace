@@ -81,7 +81,7 @@ def define_symmetric_key(url, ALGORITHM, my_address, pk, sign_sk = None):
     symmetrical_key = plaintext_recovered
     return symmetrical_key
 
-def ask_public_key(hostname,sign_private_key, my_address, CA, ALGORITHM):
+def ask_public_key(subject, sign_private_key, my_address, CA, ALGORITHM):
     # Nactu si verejny klic z databaze (jediny CA verejny klic mam ulozeny)
     with open("CA_public_key.pem", "r") as file:
         ca_pk = file.read()
@@ -92,7 +92,7 @@ def ask_public_key(hostname,sign_private_key, my_address, CA, ALGORITHM):
     headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}', 'request_type': "encrypted_request", 'request':"public_key"}
     payload = {
         "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
-        "hostname" : hostname
+        "hostname" : subject
         }
     
     response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
