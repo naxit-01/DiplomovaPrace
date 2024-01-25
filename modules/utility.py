@@ -65,7 +65,7 @@ def load_config(file):
 import base64
 import json
 
-def create_jwt(alg, subject, payload, sign_algorithm, sign_secret_key):
+"""def create_jwt(alg, subject, payload, sign_algorithm, sign_secret_key):
 
     # Hlavička
     header = {
@@ -111,11 +111,12 @@ def read_jwt(jwt):
     encoded_payload = parts[1]
     header = json.loads(base64.b64decode(encoded_header).decode('utf-8'))
     payload = json.loads(base64.b64decode(encoded_payload).decode('utf-8'))
-    return header, payload
+    return header, payload"""
 
 from modules.symmetric import symmetric_encryption,symmetric_decryption
+from modules import jwt
 
-def get_sign_private_key(my_address, CA, sign_algorithm, kem_algorithm):
+def get_sign_private_key(my_address, CA, kem_algorithm):
     # Tato funkce vrati privatni klic, ktere nam poskytla CA
 
     # Komunikace s CA bude sifrovana, proto si nejprve dohodnu symetricky klic
@@ -135,15 +136,17 @@ def get_sign_private_key(my_address, CA, sign_algorithm, kem_algorithm):
     with open("CA_public_key.pem", "r") as file:
         ca_pk = file.read()
 
-    # Overim zda mi jwt poslala doopravdy moje CA
-    if check_jwt(jwt_private_key,ca_pk, sign_algorithm) is True:        
+    # Overim zda mi jwt poslala doopravdy moje CA a ziskam data
+    payload_jwt = jwt.decode(jwt_private_key, ca_pk)
+    return payload_jwt["private_key"]
+    """if check_jwt(jwt_private_key,ca_pk, sign_algorithm) is True:        
         # Rozeberu jwt a vratim privatni klic, ktery mi poslala CA
         header_jwt, payload_jwt = read_jwt(jwt_private_key)
         private_key = payload_jwt["payload"]["private_key"]
         return private_key
 
 
-    else: return "Invalid JWT"
+    else: return "Invalid JWT"""
 
 import requests
 
@@ -164,18 +167,23 @@ def define_symmetric_key(url, kem_algorithm, my_address):
     symmetrical_key = plaintext_recovered
     return symmetrical_key
 
-def ask_public_key(hostname,sign_private_key, my_address, kem_algorithm, CA, ALGORITHM, sign_algorithm):
+def ask_public_key(hostname,sign_private_key, my_address, kem_algorithm, CA, ALGORITHM):
     symmetrical_key = define_symmetric_key(f'http://{CA["ca_ip_address"]}:{CA["ca_port"]}', kem_algorithm, my_address)
 
     # Hlavicka ktera rika kdo jsem a co chci udelat. Chci provest registraci
     headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}', 'request_type': "encrypted_request", 'request':"public_key"}
-    data = {"hostname":hostname}
+    payload = {
+        "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+        "hostname" : hostname
+        }
 
-    header,payload,response_jwt = create_jwt(ALGORITHM["signalgorithm"],
+    """header,payload,response_jwt = create_jwt(ALGORITHM["signalgorithm"],
                                              f"{my_address["ip_address"]}:{my_address["port"]}",
                                              data, 
                                              sign_algorithm, 
-                                             sign_private_key)
+                                             sign_private_key)"""
+    
+    response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
 
     #sifrovani zpravy pomoci symetrickeho klice a posila ji na server
     encrypted_message = symmetric_encryption(symmetrical_key, response_jwt)
@@ -183,12 +191,13 @@ def ask_public_key(hostname,sign_private_key, my_address, kem_algorithm, CA, ALG
     response = requests.post(f"http://{CA["ca_ip_address"]}:{CA["ca_port"]}/",headers=headers, data=json.dumps(data)).text
 
     encrypted_data = (json.loads(response))["data"]
-    jwt = symmetric_decryption(symmetrical_key, encrypted_data)
+    payload_jwt = symmetric_decryption(symmetrical_key, encrypted_data)
 
     # Nactu si verejny klic z databaze (jediny CA verejny klic mam ulozeny)
     with open("CA_public_key.pem", "r") as file:
         ca_pk = file.read()
 
-    if check_jwt(jwt, ca_pk, sign_algorithm):
-        header, payload_jwt = read_jwt(jwt)
-    return payload_jwt["payload"]
+    """if check_jwt(payload_jwt, ca_pk, sign_algorithm):
+        header, payload_jwt = read_jwt(payload_jwt)"""
+    payload_jwt = jwt.decode(payload_jwt, ca_pk)
+    return payload_jwt["public_key"]

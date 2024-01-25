@@ -5,3 +5,5 @@ from .symmetric import *
 from .blockchain import Blockchain
 
 from .utility import *
+
+from modules import jwt

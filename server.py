@@ -8,15 +8,15 @@ import tornado.web
 import tornado.websocket
 import tornado.gen
 
-from modules import get_time, load_config, create_jwt, read_jwt, check_jwt, ask_public_key, get_sign_private_key
-
+from modules import get_time, load_config, ask_public_key, get_sign_private_key
+from modules import jwt
 NODE, ALGORITHM, CA = load_config('config.ini')
 
 from modules.KEMalgorithm import *
 from modules.signatures import *
 
 kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
-sign_algorithm = globals()[ALGORITHM["signalgorithm"]]()
+
 
 from modules.symmetric import symmetric_encryption,symmetric_decryption
 
@@ -55,10 +55,10 @@ class MainHandler(tornado.web.RequestHandler):
                     encrypted_data=json.loads(encrypted_data.decode())
                     # Najdu si verejny klic v databazi
                     subject = self.request.headers.get('hostname')
-                    pk = (ask_public_key(subject,sign_private_key, my_address, kem_algorithm, CA, ALGORITHM, sign_algorithm))["public_key"]
-                    jwt = symmetric_decryption(MainHandler.symmetrical_key, encrypted_data["encrypted_message"])
-                    if check_jwt(jwt, pk, sign_algorithm) is True:
-                        data = read_jwt(jwt)
+                    pk = ask_public_key(subject,sign_private_key, my_address, kem_algorithm, CA, ALGORITHM)
+                    data_jwt = symmetric_decryption(MainHandler.symmetrical_key, encrypted_data["encrypted_message"])
+
+                    data = jwt.decode(data_jwt, pk)
                    
                 else:
                     # Pokud není v těle požadavku žádná data
@@ -69,11 +69,13 @@ class MainHandler(tornado.web.RequestHandler):
                 match request:
                     case "message":
                         subject = self.request.headers.get('hostname')
-                        print(f"{subject} sent message: {data[1]["payload"]["message"]}")
-                        header,payload,response_jwt = create_jwt(ALGORITHM["signalgorithm"], 
-                                                                 f"{CA["ca_ip_address"]}:{CA["ca_port"]}", 
-                                                                 {"message":"thanks"}, sign_algorithm,
-                                                                 sign_private_key)
+                        print(f"{subject} sent message: {data["message"]}")
+
+                        payload = {
+                            "sub" : f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
+                            "message" : "thanks"
+                        }
+                        response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
                         response = response_jwt
                         
 
@@ -107,6 +109,6 @@ if __name__ == "__main__":
     my_address['ip_address']="localhost"
     my_address['port']=port
 
-    sign_private_key = get_sign_private_key(my_address, CA, sign_algorithm, kem_algorithm)
+    sign_private_key = get_sign_private_key(my_address, CA, kem_algorithm)
 
     tornado.ioloop.IOLoop.current().start()

@@ -8,7 +8,8 @@ import tornado.web
 import tornado.websocket
 import tornado.gen
 
-from modules import get_time, load_config, create_jwt, read_jwt, check_jwt
+from modules import get_time, load_config
+from modules import jwt
 
 NODE, ALGORITHM, CA = load_config('config.ini')
 
@@ -46,32 +47,6 @@ def create_cert(subject, public_key, sign_alg):
     }
     return cert
 
-""""def create_jwt(alg, subject, payload):
-
-    # Hlavička
-    header = {
-        "alg": alg,  # Algoritmus pro podepisování
-        "typ": "JWT"      # Typ tokenu
-    }
-
-    # Náplň
-    payload = {
-        "sub": subject,     # Identifikátor subjektu
-        "name": "John Doe",      # Jméno uživatele
-        "timestamp":get_time(),
-        #"iat": datetime.datetime.utcnow().timestamp(),  # Čas vytvoření tokenu (UTC)
-        #"exp": (datetime.datetime.utcnow() + datetime.timedelta(minutes=30)).timestamp(),  # Čas expirace tokenu (UTC)
-        "payload":payload
-    }
-
-    # Zakódování do Base64 URL-safe
-    encoded_header = base64.urlsafe_b64encode(json.dumps(header).encode()).decode()
-    encoded_payload = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode()
-    signature = sign_algorithm.sign(CA_sign_secret_key, f"{encoded_header}.{encoded_payload}")
-    jwt = f"{encoded_header}.{encoded_payload}.{signature}"
-
-    
-    return header,payload,jwt"""
 
 def register(subject):
     #values = json.loads(self.request.body.decode('utf-8'))
@@ -83,11 +58,12 @@ def register(subject):
 
     cert_table.append(cert)
     print(cert)
-    header,payload,response_jwt = create_jwt(ALGORITHM["signalgorithm"],
-                                             f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
-                                             {"private_key":sign_secret_key}, 
-                                             sign_algorithm, 
-                                             CA_sign_secret_key)
+    
+    payload = {
+        "sub" : f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
+        "private_key": sign_secret_key
+    }
+    response_jwt = jwt.encode(payload, CA_sign_secret_key, ALGORITHM["signalgorithm"])
     return response_jwt
 
 def find_public_key(hostname):
@@ -126,9 +102,9 @@ class MainHandler(tornado.web.RequestHandler):
                     # Najdu si verejny klic v databazi
                     subject = self.request.headers.get('hostname')
                     pk = find_public_key(subject)
-                    jwt = symmetric_decryption(MainHandler.symmetrical_key, encrypted_data["encrypted_message"])
-                    if check_jwt(jwt, pk, sign_algorithm) is True:
-                        data = read_jwt(jwt)
+                    data_jwt = symmetric_decryption(MainHandler.symmetrical_key, encrypted_data["encrypted_message"])
+                    data = jwt.decode(data_jwt, pk)
+                    
                 else:
                     # Pokud není v těle požadavku žádná data
                     # print("V těle požadavku nejsou žádná data.")
@@ -140,14 +116,13 @@ class MainHandler(tornado.web.RequestHandler):
                         response = response_jwt
 
                     case "public_key":
-                        # prijima zasifrovanou zpravu a pomoci symetrickeho klice ji desifruje
-                        pk_hostname = data[1]["payload"]["hostname"]
-                        pk = find_public_key(pk_hostname)
-                        pk_hostname = {"public_key":pk}
-                        header,payload,response_jwt = create_jwt(ALGORITHM["signalgorithm"], 
-                                                                 f"{CA["ca_ip_address"]}:{CA["ca_port"]}", 
-                                                                 pk_hostname, sign_algorithm,
-                                                                 CA_sign_secret_key)
+                        pk_hostname = find_public_key(data["hostname"])
+                        
+                        payload = {
+                            "sub" : f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
+                            "public_key" : pk_hostname
+                        }
+                        response_jwt = jwt.encode(payload, CA_sign_secret_key, ALGORITHM["signalgorithm"])
                         response = response_jwt
                         
                     case "other":
