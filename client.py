@@ -1,28 +1,14 @@
-import configparser
-import base64
-from secrets import compare_digest
-
-from modules import get_time, load_config, get_sign_private_key, define_symmetric_key, ask_public_key
-from modules import jwt
-NODE, ALGORITHM, CA = load_config('config.ini')
-
-from modules.KEMalgorithm import *
-from modules.signatures import *
-
-kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
-
-sign_private_key = ""
-
-from modules.symmetric import symmetric_encryption, symmetric_decryption
+from modules import load_config
+from modules.communication import send_request, get_sign_private_key
 
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.gen
-import time
-import requests
-import json
 
+NODE, ALGORITHM, CA = load_config('config.ini')
+
+sign_private_key = ""
 my_address = {}
 
 class MainHandler(tornado.web.RequestHandler):
@@ -35,13 +21,7 @@ def make_app():
     ])
 
 async def send_logs():
-    try:
-        #symmetrical_key = define_symmetric_key('http://localhost:8888', kem_algorithm, my_address)
-        
-        pk = ask_public_key("localhost:8889",sign_private_key, my_address, kem_algorithm, CA, ALGORITHM)
-        
-        symmetrical_key = define_symmetric_key('http://localhost:9999', kem_algorithm, my_address)
-
+    try:        
         # zprava
         message = "correct message correct"
 
@@ -50,21 +30,8 @@ async def send_logs():
             "message": message,
         }
 
-        response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
-
-        #sifrovani zpravy pomoci symetrickeho klice a posila ji na server
-        encrypted_message = symmetric_encryption(symmetrical_key, response_jwt)
-        data = {'encrypted_message': encrypted_message}
-        headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}', 'request_type': "encrypted_request", 'request':"message"}
-        response = requests.post(f"http://{NODE["neighbour_ip_address"]}:{NODE["neighbour_port"]}/", data=json.dumps(data), headers = headers).text
-        encrypted_data=json.loads(response)["data"]
-        
-        # Najdu si verejny klic v databazi
-        pk = ask_public_key(f"{NODE["neighbour_ip_address"]}:{NODE["neighbour_port"]}",sign_private_key, my_address, kem_algorithm, CA, ALGORITHM)
-        message_jwt = symmetric_decryption(symmetrical_key, encrypted_data)
-        data = jwt.decode(message_jwt,pk)
-
-        print(data["message"])
+        response = send_request(NODE["neighbour_ip_address"],NODE["neighbour_port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="message")
+        print(response["message"])
 
     except Exception as e:
         print(e)
@@ -93,7 +60,7 @@ if __name__ == "__main__":
     my_address['ip_address'] = "localhost"
     my_address['port'] = port
 
-    sign_private_key = get_sign_private_key(my_address, CA, kem_algorithm)
+    sign_private_key = get_sign_private_key(my_address, CA, ALGORITHM)
 
     tornado.ioloop.IOLoop.current().call_later(1, send_logs)  
     tornado.ioloop.IOLoop.current().start()

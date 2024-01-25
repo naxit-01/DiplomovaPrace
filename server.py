@@ -1,70 +1,69 @@
-import configparser
-import base64
-from secrets import compare_digest
 import json
-import datetime
+from modules import load_config
+from modules import jwt
+from modules.KEMalgorithm import *
+from modules.symmetric import symmetric_encryption,symmetric_decryption
+from modules.communication import ask_public_key, get_sign_private_key
+
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.gen
 
-from modules import get_time, load_config, ask_public_key, get_sign_private_key
-from modules import jwt
 NODE, ALGORITHM, CA = load_config('config.ini')
-
-from modules.KEMalgorithm import *
-from modules.signatures import *
-
 kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
-
-
-from modules.symmetric import symmetric_encryption,symmetric_decryption
-
 my_address = {}
-
 sign_private_key = ""
 
-
-
 class MainHandler(tornado.web.RequestHandler):
-    symmetrical_key = ""
+    symmetric_key = ""
     async def post(self):
         request_type = self.request.headers.get('request_type')
         match request_type:
             case "KEM_public_key":
-                data = json.loads(self.request.body.decode('utf-8'))
                 # prijima verejny klic od klienta a vytvori z nej sdilene tajemstvi
+                data = json.loads(self.request.body.decode('utf-8'))     
+                subject = self.request.headers.get('hostname')
+                mode = self.request.headers.get('mode')
+                if mode == "ordinary":
+                    # Server prijima pouze podepsane pozadavky na KEM algoritmus
+                    pk = ask_public_key(subject, sign_private_key, my_address, CA, ALGORITHM)
+                    data = jwt.decode(data, pk)
+                else:
+                    payload = {
+                        "sub" : f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
+                        "error" : "invalid mode"
+                    }
+                    response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
+                    self.write(response_jwt)
+                    return
+
                 ciphertext, plaintext_original = kem_algorithm.encrypt(data["public_key"])
 
                 #uklada si symetricky klic
-                MainHandler.symmetrical_key=plaintext_original
+                MainHandler.symmetric_key=plaintext_original
 
-                # odesila sdilene tajemstvi
-                response = {
-                    "ciphertext":ciphertext
+                # Odesila sdilene tajemstvi
+                payload = {
+                    "sub" : f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
+                    "ciphertext" : ciphertext
                 }
-                self.write(json.dumps(response))
+                response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
+
+                self.write(response_jwt)
             case "encrypted_request":
                 request = self.request.headers.get('request')
                 response = ""
                 # Získání těla (body) požadavku
                 encrypted_data = self.request.body
                 if encrypted_data:
-                    # Pokud jsou v těle požadavku nějaká data
-                    # print("V těle požadavku jsou data.")
-                    encrypted_data=json.loads(encrypted_data.decode())
-                    # Najdu si verejny klic v databazi
+                    # Pokud jsou v těle požadavku nějaká data tak je desifruji a overim jejich pravost
+                    encrypted_data = json.loads(encrypted_data.decode())
+                    data_jwt = symmetric_decryption(MainHandler.symmetric_key, encrypted_data["encrypted_message"])
                     subject = self.request.headers.get('hostname')
-                    pk = ask_public_key(subject,sign_private_key, my_address, kem_algorithm, CA, ALGORITHM)
-                    data_jwt = symmetric_decryption(MainHandler.symmetrical_key, encrypted_data["encrypted_message"])
-
+                    pk = ask_public_key(subject,sign_private_key, my_address, CA, ALGORITHM)
+                    
                     data = jwt.decode(data_jwt, pk)
-                   
-                else:
-                    # Pokud není v těle požadavku žádná data
-                    # print("V těle požadavku nejsou žádná data.")
-                    pass
-                
 
                 match request:
                     case "message":
@@ -80,8 +79,8 @@ class MainHandler(tornado.web.RequestHandler):
                         
 
                 # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-                encrypted_response = symmetric_encryption(MainHandler.symmetrical_key, response)
-                self.write(json.dumps({"data":encrypted_response}))
+                encrypted_response = symmetric_encryption(MainHandler.symmetric_key, response)
+                self.write(json.dumps({"encrypted_message":encrypted_response}))
 
 def make_app():
     return tornado.web.Application([
@@ -109,6 +108,6 @@ if __name__ == "__main__":
     my_address['ip_address']="localhost"
     my_address['port']=port
 
-    sign_private_key = get_sign_private_key(my_address, CA, kem_algorithm)
+    sign_private_key = get_sign_private_key(my_address, CA, ALGORITHM)
 
     tornado.ioloop.IOLoop.current().start()

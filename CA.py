@@ -1,25 +1,18 @@
-import configparser
-import base64
-from secrets import compare_digest
 import json
-import datetime
+from modules import  load_config
+from modules import jwt
+from modules.KEMalgorithm import *
+from modules.signatures import *
+from modules.symmetric import symmetric_encryption,symmetric_decryption
+
 import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import tornado.gen
 
-from modules import get_time, load_config
-from modules import jwt
-
 NODE, ALGORITHM, CA = load_config('config.ini')
-
-from modules.KEMalgorithm import *
-from modules.signatures import *
-
 kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
 sign_algorithm = globals()[ALGORITHM["signalgorithm"]]()
-
-from modules.symmetric import symmetric_encryption,symmetric_decryption
 cert_table = []
 
 CA_sign_public_key, CA_sign_secret_key = sign_algorithm.generate_keypair()
@@ -52,11 +45,10 @@ def register(subject):
     #values = json.loads(self.request.body.decode('utf-8'))
         
     sign_public_key, sign_secret_key = sign_algorithm.generate_keypair()
-    print(sign_secret_key)
     cert = create_cert(subject,sign_public_key, sign_alg=ALGORITHM["signalgorithm"])
 
 
-    cert_table.append(cert)
+    cert_table.append(cert) # upravit neresi pokud se nekdo zaregistruje podruhe
     print(cert)
     
     payload = {
@@ -74,46 +66,58 @@ def find_public_key(hostname):
     return ""
 
 class MainHandler(tornado.web.RequestHandler):
-    symmetrical_key = ""
+    symmetric_key = ""
     async def post(self):
         request_type = self.request.headers.get('request_type')
+        subject = self.request.headers.get('hostname')
         match request_type:
             case "KEM_public_key":
-                data = json.loads(self.request.body.decode('utf-8'))
                 # prijima verejny klic od klienta a vytvori z nej sdilene tajemstvi
+                data = json.loads(self.request.body.decode('utf-8')) 
+                mode = self.request.headers.get('mode')
+                if mode == "ordinary":
+                    pk = find_public_key(subject)
+                    data = jwt.decode(data, pk)
+                elif mode == "emergency":
+                    pk = find_public_key(subject)
+                    if pk != "":
+                        # Emergency mode je mozne spustit pouze poprve, kdyz druha strana jeste nema podepisovaci klic, ve chvili kdy uz je zaregistrovana, tak veskera komunikace, vcetne KEM algoritmu musi byt podepisovana
+                        payload = {
+                            "sub" : f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
+                            "error" : "invalid mode"
+                        }
+                        response_jwt = jwt.encode(payload, CA_sign_secret_key, ALGORITHM["signalgorithm"])
+                        self.write(response_jwt)
+                        return
+
                 ciphertext, plaintext_original = kem_algorithm.encrypt(data["public_key"])
 
                 #uklada si symetricky klic
-                MainHandler.symmetrical_key=plaintext_original
+                MainHandler.symmetric_key=plaintext_original
 
-                # odesila sdilene tajemstvi
-                response = {
-                    "ciphertext":ciphertext
+                # Odesila sdilene tajemstvi
+                payload = {
+                    "sub" : f"{CA["ca_ip_address"]}:{CA["ca_port"]}",
+                    "ciphertext" : ciphertext
                 }
-                self.write(json.dumps(response))
+                response_jwt = jwt.encode(payload, CA_sign_secret_key, ALGORITHM["signalgorithm"])
+
+                self.write(response_jwt)
             case "encrypted_request":
                 request = self.request.headers.get('request')
-                response = ""
                 encrypted_data = self.request.body
                 if encrypted_data:
                     # Pokud jsou v těle požadavku nějaká data
                     # print("V těle požadavku jsou data.")
                     encrypted_data=json.loads(encrypted_data.decode())
                     # Najdu si verejny klic v databazi
-                    subject = self.request.headers.get('hostname')
                     pk = find_public_key(subject)
-                    data_jwt = symmetric_decryption(MainHandler.symmetrical_key, encrypted_data["encrypted_message"])
+                    data_jwt = symmetric_decryption(MainHandler.symmetric_key, encrypted_data["encrypted_message"])
                     data = jwt.decode(data_jwt, pk)
-                    
-                else:
-                    # Pokud není v těle požadavku žádná data
-                    # print("V těle požadavku nejsou žádná data.")
-                    pass
+
                 match request:
                     case "register":
-                        subject = self.request.headers.get('hostname')
                         response_jwt = register(subject)
-                        response = response_jwt
 
                     case "public_key":
                         pk_hostname = find_public_key(data["hostname"])
@@ -123,22 +127,9 @@ class MainHandler(tornado.web.RequestHandler):
                             "public_key" : pk_hostname
                         }
                         response_jwt = jwt.encode(payload, CA_sign_secret_key, ALGORITHM["signalgorithm"])
-                        response = response_jwt
-                        
-                    case "other":
-                        # prijima zasifrovanou zpravu a pomoci symetrickeho klice ji desifruje
-                        decrypted_data = symmetric_decryption(MainHandler.symmetrical_key, data["encrypted_message"])
-                        signed_data = json.loads(decrypted_data)
-
-                        # overeni podpisu pomoci prijateho podpisoveho verejneho klice
-                        if sign_algorithm.verify(signed_data["public_key"],signed_data["message"],signed_data["signature"]):
-                            print(signed_data["message"])
-                            self.write("thanks")
-                        else:
-                            self.write("invalid signature")
 
                 # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-                encrypted_response = symmetric_encryption(MainHandler.symmetrical_key, response)
+                encrypted_response = symmetric_encryption(MainHandler.symmetric_key, response_jwt)
                 self.write(json.dumps({"data":encrypted_response}))
 
 def make_app():
