@@ -164,7 +164,7 @@ class Blockchain:
         print("FalseValidBlock4 - what_the_fuck_index")
         return False
 
-    def new_log(self, public_key, message, signature):
+    def new_log(self, message):
         """
         Creates a new log to go into the next mined Block
 
@@ -174,9 +174,7 @@ class Blockchain:
         :return: The index of the Block that will hold this log
         """
         log = {
-            'public_key': public_key,
-            'message': message,
-            'signature': signature,
+            'message': message
         }
         if log not in self.current_logs:
             self.current_logs.append(log)

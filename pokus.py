@@ -1,9 +1,6 @@
-from modules import jwt, DILITHIUM
+from modules.signatures import SPHINCSPlus
 
-alg= DILITHIUM()
-
-pk, sk = alg.generate_keypair()
-
-payload = {"data":"data"}
-jwtm= jwt.encode(payload, sk, "DILITHIUM")
-print(jwt.decode(jwtm, pk))
+prom = "pyspx.shake_128s"
+sign_alg = SPHINCSPlus
+sk, pk = sign_alg.generate_keypair()
+print("wnd")
