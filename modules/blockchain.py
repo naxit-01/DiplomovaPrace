@@ -223,7 +223,7 @@ class Blockchain:
             await asyncio.sleep(0)"""
         
         timestamp = get_time()
-        send_result(timestamp)
+        await send_result(timestamp)
         
 
     def valid_proof(self, block):

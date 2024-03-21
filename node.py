@@ -32,70 +32,55 @@ my_address = {
     }
 
 node_table = []
-keys_table = {}
+com_table = {}
 
 # Instantiate the Blockchain
 blockchain = bch.Blockchain(int(NODE["complexity"]))
 
-
 class MiningHandler(tornado.web.RequestHandler):
-    async def get(self, action):
-        if action == "start":
-            if blockchain.ismining:
-                self.write("already mining")
-            elif blockchain.isresolving:
-                self.write("already resolving")
-            else:
-                # Odesle vsem nodum prikaz at zacnou tezit, vcetne sebe
-                for node in node_table:
-                    payload ={
-                        "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
-                    }
-                    await send_request_without_response(node["ip_address"],node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, uri="mine/miner")
-                    #url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
-                    #tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
-                self.write("Nodes have started the mining in the background.")
-            return
-    
     async def post(self, action):
         if action == "start":
             if blockchain.ismining:
-                response = "already mining"
-            elif blockchain.isresolving:
-                response = "already resolving"
+                self.write("already mining")
+                return
+            if blockchain.isresolving:
+                self.write("already resolving")
+                return
             else:
                 # Odesle vsem nodum prikaz at zacnou tezit, vcetne sebe
                 for node in node_table:
-                    payload ={
-                        "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
+                    payload = {
+                        "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+                        "miner" : "start"
                     }
-                    await send_request_without_response(node["ip_address"],node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, uri="mine/miner")
-
-                    #url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
-                    #tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
+                    await send_request_without_response(node["ip_address"], node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="mine/miner")
                 response = "Nodes have started the mining in the background."
-            
-            payload = {
-                "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
-                "message" : response
-            }
-            response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
-            response = response_jwt
+                payload = {
+                    "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+                    "message" : response
+                }
+                response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
+                response = response_jwt
+                        
 
             # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
             subject = self.request.headers.get('hostname')
-            encrypted_response = symmetric_encryption(keys_table[subject], response)
+            com_id = self.request.headers.get('com_id')
+            encrypted_response = symmetric_encryption(com_table[com_id], response)
             self.write(json.dumps({"encrypted_message":encrypted_response}))
         global t
         if action == "miner":
-            def send_result(timestamp):
+            async def send_result(timestamp):
                 print("odesilam")
                 for node in node_table:
                     # Rekne vsem ze hra skoncila. Posle vsem svuj vytezeny blok
                     print(f"zprava pro {node["port"]}")
-                    url = f"http://{node["ip_address"]}:{node["port"]}/mine/stop"
-                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps([block,timestamp]))
-            
+                    payload = {
+                        "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+                        "block" : block,
+                        "timestamp" : timestamp
+                    }
+                    await send_request_without_response(node["ip_address"], node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="mine/stop")
             # Overime jestli prave netezime blok, pokud ano jedna se nezadanou aktivitu a nebudeme na ni reagovat
             if blockchain.ismining:
                 self.write("already mining")
@@ -103,6 +88,7 @@ class MiningHandler(tornado.web.RequestHandler):
             if blockchain.isresolving:
                 self.write("already resolving")
                 return
+
             # Pridame zaznam o tom kdo dany blok vytezil, neni dulezite pro funkcnost
             blockchain.new_log(
                 message=f"Blok ukoncil node: {my_address["node_identifier"]}!",
@@ -126,11 +112,27 @@ class MiningHandler(tornado.web.RequestHandler):
             if blockchain.ismining:
                 # Pokud zprava neprisla ode me, tak jeste tezim. To znamena ze nekdo byl rychlejsi a ja uz tezit nemusim.
                 t.cancel()
+                t = None
                 await asyncio.sleep(0)
                 blockchain.ismining = False
-            self.write("Tornado server has stopped the mining in the background.")
+            print("Tornado server has stopped the mining in the background.")
+            
+            subject = self.request.headers.get('hostname')
+            com_id = self.request.headers.get('com_id')
 
-            block, timestamp_end = json.loads(self.request.body.decode('utf-8'))
+            # Získání těla (body) požadavku
+            encrypted_data = self.request.body
+            if encrypted_data:
+                # Pokud jsou v těle požadavku nějaká data tak je desifruji a overim jejich pravost
+                encrypted_data = json.loads(encrypted_data.decode())
+                
+                data_jwt = symmetric_decryption(com_table[com_id], encrypted_data["encrypted_message"])
+                pk = await ask_public_key(subject,sign_private_key, my_address, CA, ALGORITHM)
+                data = jwt.decode(data_jwt, pk)
+
+            block = data["block"]
+            timestamp_end = data["timestamp"]
+            #block, timestamp_end = json.loads(self.request.body.decode('utf-8'))
 
             if blockchain.valid_block(block, timestamp_end):
                 self.write("block is valid")
@@ -140,19 +142,22 @@ class MiningHandler(tornado.web.RequestHandler):
                 #print(f"blockadded\n{blockchain.hash(block)}\n{json.dumps(block)}")
             else:
                 self.write("invalid block")
+            payload = {
+                    "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+                }
+            await send_request_without_response(my_address["ip_address"], my_address["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="mine/start")
             
-            await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{my_address["ip_address"]}:{my_address["port"]}/mine/start', method='GET')
-
 class New_logHandler(tornado.web.RequestHandler):
     async def post(self):
         subject = self.request.headers.get('hostname')
+        com_id = self.request.headers.get('com_id')
         # Získání těla (body) požadavku
         encrypted_data = self.request.body
         if encrypted_data:
             # Pokud jsou v těle požadavku nějaká data tak je desifruji a overim jejich pravost
             encrypted_data = json.loads(encrypted_data.decode())
                 
-            data_jwt = symmetric_decryption(keys_table[subject], encrypted_data["encrypted_message"])
+            data_jwt = symmetric_decryption(com_table[com_id], encrypted_data["encrypted_message"])
             pk = await ask_public_key(subject,sign_private_key, my_address, CA, ALGORITHM)
                     
             data = jwt.decode(data_jwt, pk)
@@ -189,12 +194,11 @@ class New_logHandler(tornado.web.RequestHandler):
         response = response_jwt
 
         # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-        encrypted_response = symmetric_encryption(keys_table[subject], response)
+        encrypted_response = symmetric_encryption(com_table[com_id], response)
         self.write(json.dumps({"encrypted_message":encrypted_response}))
 
 class ChainHandler(tornado.web.RequestHandler):
     async def get(self, action):
-
         if action == "resolver":
             """
             Tento algoritmus vyhodnoti, ktery retez ma majoritni zastoupeni a tento retez pak zvoli za vlastni.
@@ -212,8 +216,11 @@ class ChainHandler(tornado.web.RequestHandler):
             # Ziska hashe retezu od vsech nodu 
             hashes = []
             for node in node_table:
-                response = await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{node["ip_address"]}:{node["port"]}/chain/hash', method='GET')
-                hashes.append({"hash":response.body.decode(),"ip_address":node["ip_address"],"port":node["port"]})
+                payload ={
+                    "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
+                }
+                response = await send_request(node["ip_address"],node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="chain/hash")
+                hashes.append({"hash":response["hash"],"ip_address":node["ip_address"],"port":node["port"]})
 
             
 
@@ -227,7 +234,11 @@ class ChainHandler(tornado.web.RequestHandler):
                 }
             else:
                 if correct_node is not None:
-                    blockchain.chain = (json.loads((await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{correct_node["ip_address"]}:{correct_node["port"]}/chain/get', method='GET')).body.decode('utf-8')))["chain"]
+                    payload ={
+                            "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
+                        }
+                    chain = await send_request(correct_node["ip_address"],correct_node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="chain/get")
+                    blockchain.chain = chain["chain"]
                     response = {
                         'message': 'Our chain was replaced',
                         'new_chain': blockchain.chain,
@@ -244,13 +255,10 @@ class ChainHandler(tornado.web.RequestHandler):
             #self.write(json.dumps(response))  
 
             blockchain.isresolving = False # Opet zapnu moznost tezby
-            
-        elif action == "hash":
-            self.write(blockchain.hash(blockchain.chain)) 
-
     async def post(self, action):
         if action == "get":
             subject = self.request.headers.get('hostname')
+            com_id = self.request.headers.get('com_id')
             if blockchain.valid_chain(blockchain.chain):
                 response = {
                     'chain': blockchain.chain,
@@ -267,8 +275,62 @@ class ChainHandler(tornado.web.RequestHandler):
             
             # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
             
-            encrypted_response = symmetric_encryption(keys_table[subject], response)
+            encrypted_response = symmetric_encryption(com_table[com_id], response)
             self.write(json.dumps({"encrypted_message":encrypted_response}))
+
+        elif action == "resolver":
+            """
+            Tento algoritmus vyhodnoti, ktery retez ma majoritni zastoupeni a tento retez pak zvoli za vlastni.
+
+            :return: True if our chain was replaced, False if not
+            """
+            
+            blockchain.isresolving = True
+
+            while blockchain.ismining: 
+                #pockam nez dobehne tezba
+                await asyncio.sleep(0.5)
+            await asyncio.sleep(2)
+            
+            # Ziska hashe retezu od vsech nodu 
+            hashes = []
+            for node in node_table:
+                payload ={
+                    "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
+                }
+                response = await send_request(node["ip_address"],node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="chain/hash")
+                hashes.append({"hash":response["hash"],"ip_address":node["ip_address"],"port":node["port"]})
+
+            correctness_chain, correct_node = await blockchain.resolve_conflicts(hashes)
+
+            if correctness_chain:
+                response = {
+                    'message': 'Our chain is authoritative',
+                    'chain': blockchain.chain,
+                    'hash_chain': blockchain.hash(blockchain.chain)
+                }
+            else:
+                if correct_node is not None:
+                    payload ={
+                            "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
+                        }
+                    chain = await send_request(correct_node["ip_address"],correct_node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="chain/get")
+                    blockchain.chain = chain["chain"]
+                    response = {
+                        'message': 'Our chain was replaced',
+                        'new_chain': blockchain.chain,
+                        'hash_chain': blockchain.hash(blockchain.chain)
+                    }
+                else:
+                    response = {
+                        'message': 'Irreparable collision in chains',
+                        'new_chain': blockchain.chain,
+                        'hash_chain': blockchain.hash(blockchain.chain)
+                    }
+
+            #self.write(json.dumps(response))  
+
+            blockchain.isresolving = False # Opet zapnu moznost tezby
 
         elif action == "resolve":
             if blockchain.isresolving:
@@ -277,8 +339,12 @@ class ChainHandler(tornado.web.RequestHandler):
             else:
                 # Odesle vsem nodum prikaz at zacnou porovnavat retezy, vcetne sebe
                 for node in node_table:
-                    url = f"http://{node["ip_address"]}:{node["port"]}/chain/resolver"
-                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='GET')
+                    #url = f"http://{node["ip_address"]}:{node["port"]}/chain/resolver"
+                    #tornado.httpclient.AsyncHTTPClient().fetch(url, method='GET')
+                    payload = {
+                        "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+                    }
+                    await send_request_without_response(node["ip_address"], node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="chain/resolver")
                 response = "Nodes have started the resolving in the background."
             payload = {
                 "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
@@ -288,21 +354,32 @@ class ChainHandler(tornado.web.RequestHandler):
             response = response_jwt
             
             # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-            subject = self.request.headers.get('hostname')
-            encrypted_response = symmetric_encryption(keys_table[subject], response)
+            com_id = self.request.headers.get('com_id')
+            encrypted_response = symmetric_encryption(com_table[com_id], response)
             self.write(json.dumps({"encrypted_message":encrypted_response}))
-
+        elif action == "hash":
+            com_id = self.request.headers.get('com_id')
+            payload = {
+                "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+                "hash" : blockchain.hash(blockchain.chain)
+            }
+            response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
+            response = response_jwt
+            # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
+            encrypted_response = symmetric_encryption(com_table[com_id], response)
+            self.write(json.dumps({"encrypted_message":encrypted_response}))
 class Nodes_Set_node_tableHandler(tornado.web.RequestHandler):
     async def post(self):
         # Prijme Node_table a updatuje svoji tabulku
         subject = self.request.headers.get('hostname')
+        com_id = self.request.headers.get('com_id')
         # Získání těla (body) požadavku
         encrypted_data = self.request.body
         if encrypted_data:
             # Pokud jsou v těle požadavku nějaká data tak je desifruji a overim jejich pravost
             encrypted_data = json.loads(encrypted_data.decode())
                 
-            data_jwt = symmetric_decryption(keys_table[subject], encrypted_data["encrypted_message"])
+            data_jwt = symmetric_decryption(com_table[com_id], encrypted_data["encrypted_message"])
             pk = await ask_public_key(subject,sign_private_key, my_address, CA, ALGORITHM)
                     
             data = jwt.decode(data_jwt, pk)
@@ -321,20 +398,21 @@ class Nodes_Set_node_tableHandler(tornado.web.RequestHandler):
         response = response_jwt
 
         # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-        encrypted_response = symmetric_encryption(keys_table[subject], response)
+        encrypted_response = symmetric_encryption(com_table[com_id], response)
         self.write(json.dumps({"encrypted_message":encrypted_response}))
 
 class Node_Register_nodeHandler(tornado.web.RequestHandler):
     # Prijima registrace od Nodu
     async def post(self):
         subject = self.request.headers.get('hostname')
+        com_id = self.request.headers.get('com_id')
         # Získání těla (body) požadavku
         encrypted_data = self.request.body
         if encrypted_data:
             # Pokud jsou v těle požadavku nějaká data tak je desifruji a overim jejich pravost
             encrypted_data = json.loads(encrypted_data.decode())
                 
-            data_jwt = symmetric_decryption(keys_table[subject], encrypted_data["encrypted_message"])
+            data_jwt = symmetric_decryption(com_table[com_id], encrypted_data["encrypted_message"])
             pk = await ask_public_key(subject,sign_private_key, my_address, CA, ALGORITHM)
                     
             data = jwt.decode(data_jwt, pk)
@@ -345,12 +423,12 @@ class Node_Register_nodeHandler(tornado.web.RequestHandler):
 
         # Odesle svoji updatovanou tabulku vsem co zna
         for node in node_table:
-            if (node["ip_address"] == my_address['ip_address'] and node["port"] == my_address["port"]) is False:
-                payload ={
-                    "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
-                    "node_table": json.dumps(node_table),
-                }
-                await send_request(node["ip_address"], node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="nodes/set_nodetable")
+            #if (node["ip_address"] == my_address['ip_address'] and node["port"] == my_address["port"]) is False:
+            payload ={
+                "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
+                "node_table": json.dumps(node_table),
+            }
+            await send_request(node["ip_address"], node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="nodes/set_nodetable")
         payload = {
             "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
             "message" : response
@@ -359,7 +437,7 @@ class Node_Register_nodeHandler(tornado.web.RequestHandler):
         response = response_jwt
                         
         # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-        encrypted_response = symmetric_encryption(keys_table[subject], response)
+        encrypted_response = symmetric_encryption(com_table[com_id], response)
         self.write(json.dumps({"encrypted_message":encrypted_response}))
 
 class Node_Get_node_tableHandler(tornado.web.RequestHandler):
@@ -373,8 +451,8 @@ class Node_Get_node_tableHandler(tornado.web.RequestHandler):
         response = response_jwt
                         
         # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-        subject = self.request.headers.get('hostname')
-        encrypted_response = symmetric_encryption(keys_table[subject], response)
+        com_id = self.request.headers.get('com_id')
+        encrypted_response = symmetric_encryption(com_table[com_id], response)
         self.write(json.dumps({"encrypted_message":encrypted_response}))
 
 class KEMHandler(tornado.web.RequestHandler):
@@ -397,14 +475,16 @@ class KEMHandler(tornado.web.RequestHandler):
             return
 
         ciphertext, plaintext_original = kem_algorithm.encrypt(data["public_key"])
-
+        
         #uklada si symetricky klic
-        keys_table[subject]=plaintext_original
-
+        com_id = str(uuid4()).replace('-', '')
+        com_table[com_id] = plaintext_original
+        
         # Odesila sdilene tajemstvi
         payload = {
             "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
-            "ciphertext" : ciphertext
+            "ciphertext" : ciphertext,
+            "com_id" : com_id
         }
         response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
 
@@ -428,16 +508,15 @@ async def get_sign_pk():
 
 async def register_node_async():
         # Na predem definovany sousedni nod (je jedno, ktery to bude) odeslu svoji registraci
-        data = {
-        "ip_address": my_address['ip_address'],
-        "port": my_address['port'],
-        "node_identifier":my_address["node_identifier"]
-        }
 
         # Odeslu svoji registraci na node
         payload ={
-            "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
-            "data": data,
+            "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+            "data": {
+                "ip_address": my_address['ip_address'],
+                "port": my_address['port'],
+                "node_identifier" : my_address["node_identifier"]
+            }
         }
         await send_request(NODE["neighbour_ip_address"], NODE["neighbour_port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="nodes/register_node")
 
@@ -449,7 +528,6 @@ async def register_node_async():
 
 
         blockchain.chain = (json.loads((response)["chain"]))["chain"]
-
 if __name__ == "__main__":
     app = make_app()
     # Nejprve se pokusim spustit server na portu 9999, bude se mi hodit pro debugovani, pozdeji nebude mit smysl

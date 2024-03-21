@@ -89,6 +89,7 @@ class MiningHandler(tornado.web.RequestHandler):
             if blockchain.ismining:
                 # Pokud zprava neprisla ode me, tak jeste tezim. To znamena ze nekdo byl rychlejsi a ja uz tezit nemusim.
                 t.cancel()
+                t = None
                 await asyncio.sleep(0)
                 blockchain.ismining = False
             self.write("Tornado server has stopped the mining in the background.")

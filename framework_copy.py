@@ -11,7 +11,7 @@ import tornado.web
 import tornado.websocket
 import tornado.gen
 
-from modules.communication import ask_public_key, send_request, send_request_without_response, get_sign_private_key
+from modules.communication import ask_public_key, send_request, get_sign_private_key
 from modules import jwt
 from modules import blockchain as bch
 from modules import get_time, load_config
@@ -37,50 +37,44 @@ keys_table = {}
 # Instantiate the Blockchain
 blockchain = bch.Blockchain(int(NODE["complexity"]))
 
-
 class MiningHandler(tornado.web.RequestHandler):
     async def get(self, action):
         if action == "start":
             if blockchain.ismining:
                 self.write("already mining")
-            elif blockchain.isresolving:
+                return
+            if blockchain.isresolving:
                 self.write("already resolving")
+                return
             else:
                 # Odesle vsem nodum prikaz at zacnou tezit, vcetne sebe
                 for node in node_table:
-                    payload ={
-                        "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
-                    }
-                    await send_request_without_response(node["ip_address"],node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, uri="mine/miner")
-                    #url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
-                    #tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
+                    url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
+                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
                 self.write("Nodes have started the mining in the background.")
-            return
+                return
     
     async def post(self, action):
         if action == "start":
             if blockchain.ismining:
-                response = "already mining"
-            elif blockchain.isresolving:
-                response = "already resolving"
+                self.write("already mining")
+                return
+            if blockchain.isresolving:
+                self.write("already resolving")
+                return
             else:
                 # Odesle vsem nodum prikaz at zacnou tezit, vcetne sebe
                 for node in node_table:
-                    payload ={
-                        "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
-                    }
-                    await send_request_without_response(node["ip_address"],node["port"], payload, sign_private_key, my_address, CA, ALGORITHM, uri="mine/miner")
-
-                    #url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
-                    #tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
+                    url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
+                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
                 response = "Nodes have started the mining in the background."
-            
-            payload = {
-                "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
-                "message" : response
-            }
-            response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
-            response = response_jwt
+                payload = {
+                    "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
+                    "message" : response
+                }
+                response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
+                response = response_jwt
+                        
 
             # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
             subject = self.request.headers.get('hostname')
@@ -140,7 +134,6 @@ class MiningHandler(tornado.web.RequestHandler):
                 #print(f"blockadded\n{blockchain.hash(block)}\n{json.dumps(block)}")
             else:
                 self.write("invalid block")
-            
             await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{my_address["ip_address"]}:{my_address["port"]}/mine/start', method='GET')
 
 class New_logHandler(tornado.web.RequestHandler):

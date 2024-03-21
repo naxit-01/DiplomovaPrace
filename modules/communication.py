@@ -10,14 +10,14 @@ import tornado.gen
 async def send_request(ip_address, port, payload, sign_private_key, my_address, CA, ALGORITHM, request=""):
     # podepsani a zasifrovani zpravy a jeji odeslani, nasledne prijeti odpovedi, jeji desifrovani a kontrola podpisu
     pk = await ask_public_key(f"{ip_address}:{port}",sign_private_key, my_address, CA, ALGORITHM)
-    symmetric_key = await define_symmetric_key(f"http://{ip_address}:{port}/", ALGORITHM, my_address, pk, sign_sk = sign_private_key)
-    print(symmetric_key, port)
+    com_id, symmetric_key = await define_symmetric_key(f"http://{ip_address}:{port}/", ALGORITHM, my_address, pk, sign_sk = sign_private_key)
+    #print(symmetric_key, port)
     message_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
     encrypted_message = symmetric_encryption(symmetric_key, message_jwt)
     
-    headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}'}
+    headers = {'hostname': f"{my_address["ip_address"]}:{my_address["port"]}", "com_id":com_id}
     data = {'encrypted_message': encrypted_message}
-    encrypted_response = (await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/{request}", method='POST', headers = headers, body=json.dumps(data))).body.decode("utf-8")
+    encrypted_response = await FetchIt(ip_address, port, request, headers, data)
     encrypted_response = json.loads(encrypted_response)
     #encrypted_response = json.loads(requests.post(f"http://{ip_address}:{port}/{request}", headers = headers, data=json.dumps(data)).text)
     
@@ -25,16 +25,32 @@ async def send_request(ip_address, port, payload, sign_private_key, my_address, 
     response = jwt.decode(response_jwt,pk)
     return response
 
+async def FetchIt(ip_address, port, request, headers, data):
+    encrypted_response = (await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/{request}", method='POST', headers = headers, body=json.dumps(data))).body.decode("utf-8")
+    return encrypted_response
+
+async def send_request_without_response(ip_address, port, payload, sign_private_key, my_address, CA, ALGORITHM, request=""):
+    # podepsani a zasifrovani zpravy a jeji odeslani, nasledne prijeti odpovedi, jeji desifrovani a kontrola podpisu
+    pk = await ask_public_key(f"{ip_address}:{port}",sign_private_key, my_address, CA, ALGORITHM)
+    com_id, symmetric_key = await define_symmetric_key(f"http://{ip_address}:{port}/", ALGORITHM, my_address, pk, sign_sk = sign_private_key)
+    #print(symmetric_key, port)
+    message_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
+    encrypted_message = symmetric_encryption(symmetric_key, message_jwt)
+    
+    headers = {'hostname': f"{my_address["ip_address"]}:{my_address["port"]}", "com_id":com_id}
+    data = {'encrypted_message': encrypted_message}
+    tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/{request}", method='POST', headers = headers, body=json.dumps(data))
+
 async def get_sign_private_key(my_address, CA, ALGORITHM):
     # Tato funkce vrati privatni klic, ktere nam poskytla CA
     with open("CA_public_key.pem", "r") as file:
         ca_pk = file.read()
     # Komunikace s CA bude sifrovana, proto si nejprve dohodnu symetricky klic
     # Tuto jedinou dohodu provedu bez sveho privatniho klice a to proto, ze jeste zadny nemam a prave si o nej zadam. Az ho mit budu tak budu podepisovat i zadosti o KEM algoritmus
-    symmetrical_key = await define_symmetric_key(f"http://{CA["ca_ip_address"]}:{CA["ca_port"]}/", ALGORITHM, my_address, ca_pk)
+    com_id, symmetrical_key = await define_symmetric_key(f"http://{CA["ca_ip_address"]}:{CA["ca_port"]}/", ALGORITHM, my_address, ca_pk)
 
     # Hlavicka ktera rika kdo jsem a co chci udelat. Chci provest registraci
-    headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}'}
+    headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}', "com_id": com_id}
     
     # Odesilam pozadavek a jak odpoved se mi vrati zasifrovany jwt token
     encrypted_data = (await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{CA["ca_ip_address"]}:{CA["ca_port"]}/register", method='POST', headers = headers, body = "")).body.decode("utf-8")
@@ -86,17 +102,17 @@ async def define_symmetric_key(url, ALGORITHM, my_address, pk, sign_sk = None):
     # Pomoci cipher textu a sveho privatniho klice ziskavam symetricky klic
     plaintext_recovered = kem_alg.decrypt(secret_key, ciphertext)
     symmetrical_key = plaintext_recovered
-    return symmetrical_key
+    return payload_jwt["com_id"] ,symmetrical_key
 
 async def ask_public_key(subject, sign_private_key, my_address, CA, ALGORITHM):
     # Nactu si verejny klic z databaze (jediny CA verejny klic mam ulozeny)
     with open("CA_public_key.pem", "r") as file:
         ca_pk = file.read()
 
-    symmetrical_key = await define_symmetric_key(f'http://{CA["ca_ip_address"]}:{CA["ca_port"]}/', ALGORITHM, my_address, ca_pk, sign_sk = sign_private_key)
+    com_id, symmetrical_key = await define_symmetric_key(f'http://{CA["ca_ip_address"]}:{CA["ca_port"]}/', ALGORITHM, my_address, ca_pk, sign_sk = sign_private_key)
 
     # Hlavicka ktera rika kdo jsem a co chci udelat. Chci provest registraci
-    headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}'}
+    headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}', "com_id" : com_id}
     payload = {
         "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
         "hostname" : subject

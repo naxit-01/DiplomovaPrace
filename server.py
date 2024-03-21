@@ -10,12 +10,12 @@ import tornado.web
 import tornado.websocket
 import tornado.gen
 
+from uuid import uuid4
 NODE, ALGORITHM, CA = load_config('config.ini')
 kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
 my_address = {}
 sign_private_key = ""
-keys_table = {}
-
+com_table = {}
 class KEMHandler(tornado.web.RequestHandler):
     async def post(self):
         # prijima verejny klic od klienta a vytvori z nej sdilene tajemstvi
@@ -36,14 +36,16 @@ class KEMHandler(tornado.web.RequestHandler):
             return
 
         ciphertext, plaintext_original = kem_algorithm.encrypt(data["public_key"])
-
+        
         #uklada si symetricky klic
-        keys_table[subject]=plaintext_original
-
+        com_id = str(uuid4()).replace('-', '')
+        com_table[com_id] = plaintext_original
+        
         # Odesila sdilene tajemstvi
         payload = {
             "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
-            "ciphertext" : ciphertext
+            "ciphertext" : ciphertext,
+            "com_id" : com_id
         }
         response_jwt = jwt.encode(payload, sign_private_key, ALGORITHM["signalgorithm"])
 
@@ -54,13 +56,15 @@ class MainHandler(tornado.web.RequestHandler):
         path = self.request.path
         if path == "/message":
             subject = self.request.headers.get('hostname')
+            com_id = self.request.headers.get('com_id')
+
             # Získání těla (body) požadavku
             encrypted_data = self.request.body
             if encrypted_data:
                 # Pokud jsou v těle požadavku nějaká data tak je desifruji a overim jejich pravost
                 encrypted_data = json.loads(encrypted_data.decode())
                 
-                data_jwt = symmetric_decryption(keys_table[subject], encrypted_data["encrypted_message"])
+                data_jwt = symmetric_decryption(com_table[com_id], encrypted_data["encrypted_message"])
                 pk = await ask_public_key(subject,sign_private_key, my_address, CA, ALGORITHM)
                     
                 data = jwt.decode(data_jwt, pk)
@@ -76,7 +80,7 @@ class MainHandler(tornado.web.RequestHandler):
                         
 
         # Mam zpravu a musim ji ted zasifrovat pomoci symetrickeho klice
-        encrypted_response = symmetric_encryption(keys_table[subject], response)
+        encrypted_response = symmetric_encryption(com_table[com_id], response)
         self.write(json.dumps({"encrypted_message":encrypted_response}))
 
 async def get_sign_pk():
