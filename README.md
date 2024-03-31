@@ -1,4 +1,15 @@
-Postkvantová Blockchainová síť
+# Postkvantová Blockchainová síť  
+#### Návod na spuštění  
+0. Předpoklady: Python, Microsoft Visual C++ 14.0 nebo novější
+1. stáhněte repozitář pomocí přikazu git clone -b PostChain-network https://github.com/naxit-01/DiplomovaPrace.git
+2. spusťte setup.bat. Tento script vytvoří virtuální prostředí jazyka Python a do něj nainstaluje potřebné knihovny. Pozor, proces trvá přibližně 5 minut.
+3. Při instalaci byly vytvořené tři nové scripty. activate_agent.bat, activate_ca.bat, activate_node.bat
+4. Spuťte script activate_ca.bat. Spustí se CA
+5. Alespoň 3x spusťte activate_node.bat
+6. Na závěr spuťte activate_agent.bat
+7. Celou síť ovládáte pomocí příkazového okna agenta.
+
+   
 # Diplomová Práce
 Praktická část se skládá ze dvou samostně fungujících systémů a poté jednoho, který vše propojuje do jednoho celku.   
 První částí je mikroslužba pro posílání šifrovaných zpráv. Skládá se z pseudo certifikační autority (tato CA nedosahuje všech kvalit, kladených na CA, ale cílem DP není navrhnout vlastní, nebo použít cizí CA), klienta a serveru. Soubory jsou CA.py, client.py, server.py Více o této části níže.   
