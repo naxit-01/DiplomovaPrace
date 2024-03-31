@@ -3,7 +3,8 @@ import base64
 class DILITHIUM:
     def __init__(self):
         global generate_keypair, sign, verify
-        from pqcrypto.sign.dilithium4 import generate_keypair, sign, verify
+        #from pqcrypto.sign.dilithium4 import generate_keypair, sign, verify
+        from pqcryptoLib.pqcrypto.sign.dilithium4 import generate_keypair, sign, verify
     
     def generate_keypair(self):
         # Alice generates a (public, secret) key pair
@@ -55,8 +56,9 @@ class DILITHIUM:
 class FALCON:
     def __init__(self):
         global generate_keypair, sign, verify
-        from pqcrypto.sign.falcon_1024 import generate_keypair, sign, verify
-    
+        #from pqcrypto.sign.falcon_1024 import generate_keypair, sign, verify
+        from pqcryptoLib.pqcrypto.sign.falcon_1024 import generate_keypair, sign, verify
+
     def generate_keypair(self):
         # Alice generates a (public, secret) key pair
         public_key, secret_key = generate_keypair()
@@ -83,7 +85,7 @@ class FALCON:
 class SPHINCS:
     def __init__(self):
         global generate_keypair, sign, verify
-        from pqcrypto.sign.sphincs_haraka_128f_robust import generate_keypair, sign, verify
+        from pqcryptoLib.pqcrypto.sign.sphincs_haraka_128f_robust import generate_keypair, sign, verify
     
     def generate_keypair(self):
         # Alice generates a (public, secret) key pair
@@ -224,7 +226,7 @@ class SPHINCSPlus:
         # Získání klíče
         secret_key = secret_key.split(secret_key_start)[1].split(secret_key_end)[0].strip()
 
-        signature = algorithm_module.sign(message.encode('utf-8'), secret_key)
+        #signature = algorithm_module.sign(message.encode('utf-8'), secret_key)
         # Alice signs her message using her secret key
         secret_key = base64.b64decode(secret_key.encode('utf-8'))
         #message = base64.b64decode(message.encode('utf-8'))

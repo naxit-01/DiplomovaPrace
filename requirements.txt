@@ -1,6 +1,8 @@
-
-json
-tornado.ioloop
-tornado.web
-tornado.websocket
-tornado.gen
+tornado
+pycryptodome
+pqcrypto
+configparser
+pathlib
+cffi
+setuptools
+pyspx
