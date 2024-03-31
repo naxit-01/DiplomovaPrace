@@ -1,6 +1,6 @@
 # Postkvantová Blockchainová síť  
 #### Návod na spuštění  
-0. Předpoklady: Python, Microsoft Visual C++ 14.0 nebo novější
+0. Předpoklady: Python, Microsoft Visual C++ 14.0 nebo novější (https://visualstudio.microsoft.com/visual-cpp-build-tools/)
 1. stáhněte repozitář pomocí přikazu git clone -b PostChain-network https://github.com/naxit-01/DiplomovaPrace.git
 2. spusťte setup.bat. Tento script vytvoří virtuální prostředí jazyka Python a do něj nainstaluje potřebné knihovny. Pozor, proces trvá přibližně 5 minut.
 3. Při instalaci byly vytvořené tři nové scripty. activate_agent.bat, activate_ca.bat, activate_node.bat
