@@ -66,9 +66,7 @@ class MiningHandler(tornado.web.RequestHandler):
                 return
             # Pridame zaznam o tom kdo dany blok vytezil, neni dulezite pro funkcnost
             blockchain.new_log(
-                public_key="public",
                 message=f"Blok ukoncil node: {my_address["node_identifier"]}!",
-                signature="sign",
             )
 
             # Vypocitam hash z predchoziho bloku
@@ -110,12 +108,12 @@ class New_logHandler(tornado.web.RequestHandler):
     async def post(self):
         values = json.loads(self.request.body.decode('utf-8'))
         # Zkontroluje jestli dostal vsechny potrebne data
-        required = ['public_key', 'message', 'signature']
+        required = ['message']
         if not all(k in values for k in required):
             self.write("Missing values")
             return
         # Create a new Log
-        added = blockchain.new_log(values['public_key'], values['message'], values['signature'])
+        added = blockchain.new_log(values['message'])
         if added:
             self.write("Log will be added to Block")
             

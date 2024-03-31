@@ -1,8 +1,0 @@
-tornado
-pycryptodome
-pqcrypto
-configparser
-pathlib
-cffi
-setuptools
-pyspx

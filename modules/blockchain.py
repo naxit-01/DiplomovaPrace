@@ -26,7 +26,7 @@ class Blockchain:
 
     def valid_chain(self, chain):
         """
-        Zjisti jestli je retez validni, to znamena jestli u kazdeho blocku hash zacina ctyrmi nulami 
+        Zjisti jestli je retez validni, to znamena jestli u kazdeho blocku hash zacina zadanym poctem nul 
         a zaroven jestli se hash nachazi v nasledujicim blocku
         
         vstup: retez
@@ -223,7 +223,13 @@ class Blockchain:
             await asyncio.sleep(0)"""
         
         timestamp = get_time()
-        await send_result(timestamp)
+        result = send_result(timestamp)
+        if result is not None:
+            await result
+        else:
+            # Handle the case where send_result returns None
+            pass
+
         
 
     def valid_proof(self, block):
