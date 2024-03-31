@@ -20,22 +20,6 @@ def make_app():
         (r"/", MainHandler),
     ])
 
-async def send_mess():
-    try:        
-        # zprava
-        message = f"{my_address['ip_address']}:{my_address['port']} correct message correct"
-
-        payload ={
-            "sub":f"{my_address["ip_address"]}:{my_address["port"]}",
-            "message": message,
-        }
-
-        response = await send_request(NODE["neighbour_ip_address"],NODE["neighbour_port"], payload, sign_private_key, my_address, CA, ALGORITHM, request="message")
-        print(response["message"])
-
-    except Exception as e:
-        print(e)
-
 async def send_logs():
     try:        
         # zprava
@@ -103,9 +87,7 @@ async def resolve_chains():
         print(e)
 
 async def ask():
-    user_input = input("0: send message\n1: get node table \n2: send log \n3: start mining \n4: resolve chains \n5: get chain \n ")
-    if user_input == "0":
-        await send_mess()
+    user_input = input("1: get node table \n2: send log \n3: start mining \n4: resolve chains \n5: get chain \n ")
     if user_input == "1":
         await get_node_table()
     elif user_input == "2":

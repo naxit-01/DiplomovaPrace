@@ -5,7 +5,6 @@ import json
 from uuid import uuid4
 import asyncio
 
-import requests
 import tornado.ioloop
 import tornado.web
 import tornado.websocket

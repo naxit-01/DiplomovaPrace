@@ -4,7 +4,7 @@ class PQCRYPTO:
     def __init__(self):
         global generate_keypair, encrypt, decrypt
         #from pqcrypto.kem.kyber1024 import generate_keypair, encrypt, decrypt
-        from pqcryptoLib.pqcrypto.kem.kyber1024 import generate_keypair, encrypt, decrypt
+        from pqcryptoL.pqcrypto.kem.kyber1024 import generate_keypair, encrypt, decrypt
         
 
     def generate_keypair(self):

@@ -4,7 +4,7 @@ class DILITHIUM:
     def __init__(self):
         global generate_keypair, sign, verify
         #from pqcrypto.sign.dilithium4 import generate_keypair, sign, verify
-        from pqcryptoLib.pqcrypto.sign.dilithium4 import generate_keypair, sign, verify
+        from pqcryptoL.pqcrypto.sign.dilithium4 import generate_keypair, sign, verify
     
     def generate_keypair(self):
         # Alice generates a (public, secret) key pair
@@ -57,7 +57,7 @@ class FALCON:
     def __init__(self):
         global generate_keypair, sign, verify
         #from pqcrypto.sign.falcon_1024 import generate_keypair, sign, verify
-        from pqcryptoLib.pqcrypto.sign.falcon_1024 import generate_keypair, sign, verify
+        from pqcryptoL.pqcrypto.sign.falcon_1024 import generate_keypair, sign, verify
 
     def generate_keypair(self):
         # Alice generates a (public, secret) key pair
@@ -85,7 +85,7 @@ class FALCON:
 class SPHINCS:
     def __init__(self):
         global generate_keypair, sign, verify
-        from pqcryptoLib.pqcrypto.sign.sphincs_haraka_128f_robust import generate_keypair, sign, verify
+        from pqcryptoL.pqcrypto.sign.sphincs_haraka_128f_robust import generate_keypair, sign, verify
     
     def generate_keypair(self):
         # Alice generates a (public, secret) key pair
