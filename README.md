@@ -8,6 +8,9 @@ Informace o sousedním nodu. Adresa a port nodu se kterým se bude komunikovat. 
 Složitost hashe v blockchainu. Tuto informaci využívá pouze node, který tak nastavuje složitost těžby. Tato konstanta musí být pro všechny nody stejná.  
 Adresa a port certifikační autority. Tyto údaje využívají všechny služby a musí být pro všechny služby stejná. 
 
+## Dataset
+Systemove logy, ktere jsou posilany beru z data setu, ktery jsem stahnul z github repozitare https://github.com/logpai/loghub
+
 ## Blockchain
 Decentralizovana sit pro bezpecne ukladani komunikace. Jednotlive zpravy se vkladaji do bloku a ty se uzamikaji hashem a nasledne se pripojuji k retezu. Plati jednoduche pravidlo: co bylo jednou ulozeno do retezu uz z nej nikdy nemuze byt vzato. Zaroven zpravy v bloku musi potvrdit alespon 51% autorit, jinak zprava nebude prijata.
 
