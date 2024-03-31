@@ -8,3 +8,5 @@ echo call python blockchain.py >> activate_blockchain.bat
 
 echo call blockchainvenv\Scripts\activate > activate_client.bat
 echo call python client.py >> activate_client.bat
+
+pause
