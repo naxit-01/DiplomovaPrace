@@ -1,3 +1,4 @@
+Postkvantová Blockchainová síť
 # Diplomová Práce
 Praktická část se skládá ze dvou samostně fungujících systémů a poté jednoho, který vše propojuje do jednoho celku.   
 První částí je mikroslužba pro posílání šifrovaných zpráv. Skládá se z pseudo certifikační autority (tato CA nedosahuje všech kvalit, kladených na CA, ale cílem DP není navrhnout vlastní, nebo použít cizí CA), klienta a serveru. Soubory jsou CA.py, client.py, server.py Více o této části níže.   
