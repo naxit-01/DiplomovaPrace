@@ -25,4 +25,5 @@ echo call python node.py >> activate_node.bat
 echo call postchainvenv\Scripts\activate > activate_ca.bat
 echo call python CA.py >> activate_ca.bat
 
+echo Instalace dokončena úspěšně. Stiskněte libovolnou klávesu...
 pause
