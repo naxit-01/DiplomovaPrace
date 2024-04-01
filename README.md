@@ -8,11 +8,11 @@
    ```bash 
    git clone -b PostChain-network https://github.com/naxit-01/DiplomovaPrace.git
    ```
-2. spusťte setup.bat. Tento script vytvoří virtuální prostředí jazyka Python a do něj nainstaluje potřebné knihovny. <font color="red">Pozor, proces trvá přibližně 5 minut.</font>
-3. Při instalaci byly vytvořené tři nové scripty. activate_agent.bat, activate_ca.bat, activate_node.bat
-4. Spuťte script activate_ca.bat. Spustí se CA
-5. Alespoň 3x spusťte activate_node.bat
-6. Na závěr spuťte activate_agent.bat
+2. spusťte **setup.bat**. Tento script vytvoří virtuální prostředí jazyka Python a do něj nainstaluje potřebné knihovny. <font color="red">Pozor, proces trvá přibližně 5 minut.</font>
+3. Při instalaci byly vytvořené tři nové scripty. **activate_agent.bat**, **activate_ca.bat**, **activate_node.bat**
+4. Spuťte script **activate_ca.bat**. Spustí se CA
+5. Alespoň 3x spusťte **activate_node.bat**
+6. Na závěr spuťte **activate_agent.bat**
 7. Celou síť ovládáte pomocí příkazového okna agenta.
 
    
