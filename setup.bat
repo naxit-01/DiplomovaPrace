@@ -22,4 +22,6 @@ echo call python bob.py >> activate_bob.bat
 echo call pqcvenv\Scripts\activate > activate_ca.bat
 echo call python CA.py >> activate_ca.bat
 
+echo Instalace dokončena úspěšně. Stiskněte libovolnou klávesu...
 pause
+

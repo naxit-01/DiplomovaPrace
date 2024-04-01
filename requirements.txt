@@ -6,3 +6,4 @@ pathlib
 cffi
 setuptools
 #pyspx
+poetry

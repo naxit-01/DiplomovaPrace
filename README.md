@@ -1,5 +1,19 @@
-PQC service
-
+# PQC service
+#### Návod na spuštění  
+0. Předpoklady: 
+   - Python 3.12.2
+   - Git
+   - Microsoft Visual C++ 14.0 nebo novější (https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+1. stáhněte repozitář 
+   ```bash 
+   git clone -b PQC-service https://github.com/naxit-01/DiplomovaPrace.git
+   ```
+2. spusťte **setup.bat**. Tento script vytvoří virtuální prostředí jazyka Python a do něj nainstaluje potřebné knihovny. <font color="red">Pozor, proces trvá přibližně 5 minut.</font>
+3. Při instalaci byly vytvořené tři nové scripty. **activate_alice.bat**, **activate_ca.bat**, **activate_bob.bat**
+4. Spuťte script **activate_ca.bat**. Spustí se CA
+5. Spusťte **activate_bob.bat**
+6. Na závěr spuťte **activate_alice.bat**
+7. Alice začne automaticky odesílat zašifrované zprávy Bobovi.
 # Diplomová Práce
 Praktická část se skládá ze dvou samostně fungujících systémů a poté jednoho, který vše propojuje do jednoho celku.   
 První částí je mikroslužba pro posílání šifrovaných zpráv. Skládá se z pseudo certifikační autority (tato CA nedosahuje všech kvalit, kladených na CA, ale cílem DP není navrhnout vlastní, nebo použít cizí CA), klienta a serveru. Soubory jsou CA.py, client.py, server.py Více o této části níže.   
