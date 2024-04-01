@@ -5,3 +5,7 @@ activate_alice.bat
 activate_bob.bat
 activate_ca.bat
 kyberpy/__pycache__
+modules/__pycache__
+kyberpy/__pycache__/
+kyberpy/__pycache__/kyber.cpython-312.pyc
+kyberpy/__pycache__/modules.cpython-312.pyc

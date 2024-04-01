@@ -111,7 +111,7 @@ async def ask_public_key(subject, sign_private_key, my_address, CA, ALGORITHM):
 
     com_id, symmetrical_key = await define_symmetric_key(f'http://{CA["ca_ip_address"]}:{CA["ca_port"]}/', ALGORITHM, my_address, ca_pk, sign_sk = sign_private_key)
 
-    # Hlavicka ktera rika kdo jsem a co chci udelat. Chci provest registraci
+    # Hlavicka ktera rika kdo jsem a co chci udelat.
     headers = {'hostname': f'{my_address["ip_address"]}:{my_address["port"]}', "com_id" : com_id}
     payload = {
         "sub" : f"{my_address["ip_address"]}:{my_address["port"]}",
