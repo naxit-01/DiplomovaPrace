@@ -1,5 +1,17 @@
-Blockchain service
+# Blockchain service
+#### Návod na spuštění  
+0. Předpoklady: 
+   - Python 3.12.2
 
+1. stáhněte repozitář 
+   ```bash 
+   git clone -b PostChain-network https://github.com/naxit-01/DiplomovaPrace.git
+   ```
+2. spusťte **setup.bat**. Tento script vytvoří virtuální prostředí jazyka Python a do něj nainstaluje potřebné knihovny. Po dokončení stiskněte libovolnou klávesu.
+3. Při instalaci byly vytvořené dva nové scripty. **activate_client.bat**, **activate_blockchain.bat**
+5. Alespoň 3x spusťte **activate_blockchain.bat**
+6. Na závěr spuťte **activate_client.bat**
+7. Celou síť ovládáte pomocí příkazového okna clienta.
 #### Konfigurace: 
 V souboru config.ini se všechny sluzby dozvídají potřebné informace pro jejich spuštění. Služby i konfigurační soubor je napsán tak, aby mohly být všechny služby spuštěny na stejném konfiguračním souboru ale zároveň je možné pro každou službu konfigurační soubor upravit.  
 Tento soubor obsahuje:  
@@ -25,10 +37,8 @@ GET pozadavek. Po zavolani node provede kontrolu spravnosti celeho retezu. Zkont
 #### 3. Vlozeni zpravy (logu) na blockchain node  
 <code>/logs/new</code>
 ```json  
-{ 
-"public_key":"sign_public_key3",  
+{  
 "message":"zprava od clienta",  
-"signature":"signature"   
 }
 ```  
 POST pozadavek, obsahuje JSON zpravy. Zprava se automaticky ulozi do zasobniku pro dalsi blok. Zaroven se rozdistribuje na vsechny nody v siti. Drzi se pravidlo, vsichni maji prehled o vsem a nikdo neni vys, nez ostatni.  
@@ -38,7 +48,7 @@ POST pozadavek, obsahuje JSON zpravy. Zprava se automaticky ulozi do zasobniku p
 GET pozadavek. Impuls pro celou sit, ze ma zacit tezit dukaz pro overeni soucasneho bloku.  
 
 #### 5. vyhodnoceni retezu v nodech  
-<code>/nodes/resolve</code>  
+<code>/chain/resolve</code>  
 TODO: Impuls pro celou sit. Nody si porovnaji svoje retezy a ten ktery ziska vice jak 51% se stane jedinym prezivsim  
 Tento endpoint bude volan pokazde kdy se pripoji novy node k siti, a to proto aby nemusel spolehat na spravnost retezu sveho souseda, ale primo dostal vsemi potvrzeny vzorek.
 
@@ -70,9 +80,3 @@ Ve chvili kdy je potreba zkontrolovat spravnost retezu zavola se funkce valid_ch
 5. Hlavni retez v siti  
 Donutim vsechny prestat tezit. Zahodit praci (je to random je to jedno) Pokud nejaky node dostane informaci pozdeji nez nekdo jiny, nevadi. Proste posle vsem svuj block a jede se dal. Vsem poslu zpravu prestan tezit a od vsech pockam na odpoved "prestal jsem" tim si i overim ze ubehl dostatecny cas na to aby node ktery vytezi block ho poslal ostatnim.  
   
-## co chci udelat: 
-Vyresit original kyber. Je mozne to vubec rozjet ve Windows? Rozjet v linux a vytvorit si API?
-
-Syslogger: definovat si jake logy chci z pocitace stahovat. a zda vubec. Pouzit dataset?  
-napsat testy pro jednotlive algoritmy=extremne slozite: kazdy potreba zvlast. Je to nutne?  
-pridat ke kazdemu zaznamu na strane klienta identifikator. zaruci ze podepsana zprava nemuze byt duplikovana  
