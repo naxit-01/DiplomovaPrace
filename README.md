@@ -5,7 +5,7 @@
 
 1. stáhněte repozitář 
    ```bash 
-   git clone -b PostChain-network https://github.com/naxit-01/DiplomovaPrace.git
+   git clone -b Blockchain-service https://github.com/naxit-01/DiplomovaPrace.git
    ```
 2. spusťte **setup.bat**. Tento script vytvoří virtuální prostředí jazyka Python a do něj nainstaluje potřebné knihovny. Po dokončení stiskněte libovolnou klávesu.
 3. Při instalaci byly vytvořené dva nové scripty. **activate_client.bat**, **activate_blockchain.bat**
