@@ -7,7 +7,7 @@ import math
 import random
 import hashlib
 
-from package.adrs import ADRS
+from sphincs_Tottifi.package.adrs import ADRS
 
 
 # TWEAKABLES & UTILS
