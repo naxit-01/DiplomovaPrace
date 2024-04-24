@@ -12,7 +12,7 @@ import tornado.websocket
 import tornado.gen
 
 NODE, ALGORITHM, CA = load_config('config.ini')
-kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
+kem_algorithm = globals()[ALGORITHM["kemalgorithm"]](ALGORITHM["kemversion"])
 sign_algorithm = globals()[ALGORITHM["signalgorithm"]]()
 cert_table = []
 

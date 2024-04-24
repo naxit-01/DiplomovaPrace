@@ -12,7 +12,7 @@ import tornado.gen
 
 from uuid import uuid4
 NODE, ALGORITHM, CA = load_config('config.ini')
-kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
+kem_algorithm = globals()[ALGORITHM["kemalgorithm"]](ALGORITHM["kemversion"])
 my_address = {}
 sign_private_key = ""
 com_table = {}

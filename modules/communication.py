@@ -73,7 +73,7 @@ import modules.KEMalgorithm as KEMalgorithm
 async def define_symmetric_key(url, ALGORITHM, my_address, pk, sign_sk = None):
     # Definuji si symetricky klic se kterym budu sifrovat a desifrovat data s protejskem viz url
     
-    kem_alg = getattr(KEMalgorithm, ALGORITHM["kemalgorithm"], None)()
+    kem_alg = getattr(KEMalgorithm, ALGORITHM["kemalgorithm"], None)(ALGORITHM["kemversion"])
     # Generuji vlastni dvojici klicu
     public_key, secret_key = kem_alg.generate_keypair()
 

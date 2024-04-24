@@ -1,11 +1,22 @@
 import base64
 
 class PQCRYPTO:
-    def __init__(self):
+    def __init__(self, version):
         global generate_keypair, encrypt, decrypt
         #from pqcrypto.kem.kyber1024 import generate_keypair, encrypt, decrypt
-        from pqcryptoL.pqcrypto.kem.kyber1024 import generate_keypair, encrypt, decrypt
-
+        if version == "Kyber512":
+            from pqcryptoL.pqcrypto.kem.kyber512 import generate_keypair, encrypt, decrypt
+        elif version == "Kyber512_90s":
+            from pqcryptoL.pqcrypto.kem.kyber512_90s import generate_keypair, encrypt, decrypt
+        elif version == "Kyber768":
+            from pqcryptoL.pqcrypto.kem.kyber768 import generate_keypair, encrypt, decrypt
+        elif version == "Kyber768_90s":
+            from pqcryptoL.pqcrypto.kem.kyber768_90s import generate_keypair, encrypt, decrypt
+        elif version == "Kyber1024":
+            from pqcryptoL.pqcrypto.kem.kyber1024 import generate_keypair, encrypt, decrypt
+        else:
+            from pqcryptoL.pqcrypto.kem.kyber1024_90s import generate_keypair, encrypt, decrypt
+        
     def generate_keypair(self):
         public_key, secret_key = generate_keypair()
         public_key = base64.b64encode(public_key).decode('utf-8')
@@ -47,12 +58,19 @@ class PQCRYPTO:
         return "-----BEGIN SYMMETRIC KEY-----\n" + symmetrickey_recovered + "\n-----END SYMMETRIC KEY-----"
     
 class KYBERPY:
-    def __init__(self):
-        global Kyber512
-        from kyberpy.kyber import Kyber512
+    def __init__(self, version):
+        global Kyber
+
+        if version == "Kyber512":
+            from kyberpy.kyber import Kyber512 as Kyber
+        elif version == "Kyber768":
+            from kyberpy.kyber import Kyber768 as Kyber
+        else:
+            from kyberpy.kyber import Kyber1024 as Kyber
+
 
     def generate_keypair(self):
-        public_key, secret_key = Kyber512.keygen() #generuje privatni s shared klice
+        public_key, secret_key = Kyber.keygen() #generuje privatni s shared klice
         public_key = base64.b64encode(public_key).decode('utf-8')
         secret_key = base64.b64encode(secret_key).decode('utf-8')
         return "-----BEGIN PUBLIC KEY-----\n" + public_key + "\n-----END PUBLIC KEY-----", "-----BEGIN SECRET KEY-----\n" + secret_key + "\n-----END SECRET KEY-----"
@@ -66,7 +84,7 @@ class KYBERPY:
         public_key = public_key.split(public_key_start)[1].split(public_key_end)[0].strip()
 
         public_key = base64.b64decode(public_key.encode('utf-8'))
-        ciphertext, symmetrickey_original = Kyber512.enc(public_key)
+        ciphertext, symmetrickey_original = Kyber.enc(public_key)
         ciphertext = base64.b64encode(ciphertext).decode('utf-8')
         symmetrickey_original = base64.b64encode(symmetrickey_original).decode('utf-8') 
         #return ciphertext, symmetrickey_original
@@ -89,7 +107,7 @@ class KYBERPY:
 
         secret_key = base64.b64decode(secret_key.encode('utf-8'))
         ciphertext = base64.b64decode(ciphertext.encode('utf-8'))
-        symmetrickey_recovered = Kyber512.dec(ciphertext,secret_key)
+        symmetrickey_recovered = Kyber.dec(ciphertext,secret_key)
         symmetrickey_recovered = base64.b64encode(symmetrickey_recovered).decode('utf-8')
         #return symmetrickey_recovered
         return "-----BEGIN SYMMETRIC KEY-----\n" + symmetrickey_recovered + "\n-----END SYMMETRIC KEY-----"
