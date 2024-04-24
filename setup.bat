@@ -2,7 +2,7 @@ python -m venv pqcvenv
 call pqcvenv\Scripts\activate
 call pip install -r requirements.txt
 
-call git clone https://github.com/kpdemetriou/pqcrypto.git
+REM call git clone https://github.com/kpdemetriou/pqcrypto.git
 
 REM call mkdir pqcrypto
 REM xcopy /Y /E pqcryptoLib\* pqcrypto
