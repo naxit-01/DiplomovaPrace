@@ -68,12 +68,12 @@ async def get_sign_private_key(my_address, CA, ALGORITHM):
     return payload_jwt["private_key"]
 
 
-import modules.KEMalgorithm as KEMalgorithm
+import modules.kemAlgLib as kemAlgLib
 
 async def define_symmetric_key(url, ALGORITHM, my_address, pk, sign_sk = None):
     # Definuji si symetricky klic se kterym budu sifrovat a desifrovat data s protejskem viz url
     
-    kem_alg = getattr(KEMalgorithm, ALGORITHM["kemalgorithm"], None)(ALGORITHM["kemversion"])
+    kem_alg = getattr(kemAlgLib, ALGORITHM["kemalgorithm"], None)()
     # Generuji vlastni dvojici klicu
     public_key, secret_key = kem_alg.generate_keypair()
 

@@ -7,3 +7,4 @@ cffi
 setuptools
 #pyspx
 poetry
+numpy

@@ -1,7 +1,14 @@
 import base64
 
-class PQCRYPTO:
-    def __init__(self, version):
+class KYBER_PQCRYPTO:
+    def __init__(self):
+        import configparser
+
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+
+        version = config.get("ALGORITHM", "kemversion_KP")
+
         global generate_keypair, encrypt, decrypt
         #from pqcrypto.kem.kyber1024 import generate_keypair, encrypt, decrypt
         if version == "Kyber512":
@@ -57,8 +64,14 @@ class PQCRYPTO:
         symmetrickey_recovered = base64.b64encode(symmetrickey_recovered).decode('utf-8')
         return "-----BEGIN SYMMETRIC KEY-----\n" + symmetrickey_recovered + "\n-----END SYMMETRIC KEY-----"
     
-class KYBERPY:
-    def __init__(self, version):
+class KYBER_PY:
+    def __init__(self):
+        import configparser
+
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+
+        version = config.get("ALGORITHM", "kemversion_KPy")
         global Kyber
 
         if version == "Kyber512":
@@ -67,7 +80,6 @@ class KYBERPY:
             from kyberpy.kyber import Kyber768 as Kyber
         else:
             from kyberpy.kyber import Kyber1024 as Kyber
-
 
     def generate_keypair(self):
         public_key, secret_key = Kyber.keygen() #generuje privatni s shared klice

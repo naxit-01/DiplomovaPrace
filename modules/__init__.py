@@ -1,5 +1,5 @@
-from .KEMalgorithm import *
-from .signatures import *
+from .kemAlgLib import *
+from .signAlgLib import *
 from .symmetric import *
 
 

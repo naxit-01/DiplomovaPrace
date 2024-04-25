@@ -1,3 +1,7 @@
-#from modules.signatures import Falcon1
-
-#run_test = Falcon1.test()
+from modules.signAlgLib import Falcon_official
+signAlg=Falcon_official()
+#signAlg.test()
+pk, sk = signAlg.generate_keypair()
+signature = signAlg.sign(sk,"Hello")
+if signAlg.verify(pk,"Hello", signature):
+    print("TRUE")

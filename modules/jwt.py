@@ -3,11 +3,11 @@
 import base64
 import json
 #from utility import get_time
-import modules.signatures as signatures
+import modules.signAlgLib as signAlgLib
 
 def encode(payload, key, alg):
     # Získání třídy podle názvu algoritmu
-    sign_alg = getattr(signatures, alg, None)()
+    sign_alg = getattr(signAlgLib, alg, None)()
 
     # Hlavička
     header = {
@@ -51,7 +51,7 @@ def decode(jwt, public_key, alg=None): # Zmena oproti predloze. Pr
         alg = header["alg"]
 
     try:
-        sign_alg = getattr(signatures, alg, None)()
+        sign_alg = getattr(signAlgLib, alg, None)()
     except:
         return "wrong algorithm"
     

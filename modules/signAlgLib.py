@@ -1,13 +1,13 @@
 import base64
 
-class DILITHIUM:
+class DILITHIUM_PQCRYPTO:
     def __init__(self):
         import configparser
 
         config = configparser.ConfigParser()
         config.read("config.ini")
 
-        version = config.get("ALGORITHM", "signversion")
+        version = config.get("ALGORITHM", "signversion_DP")
 
         global generate_keypair, sign, verify
 
@@ -18,15 +18,13 @@ class DILITHIUM:
             from pqcryptoL.pqcrypto.sign.dilithium3 import generate_keypair, sign, verify
         else:
             from pqcryptoL.pqcrypto.sign.dilithium4 import generate_keypair, sign, verify
-        
-    
+
     def generate_keypair(self):
         # Alice generates a (public, secret) key pair
         public_key, secret_key = generate_keypair()
         public_key = base64.b64encode(public_key).decode('utf-8')
         secret_key = base64.b64encode(secret_key).decode('utf-8')
         return "-----BEGIN PUBLIC KEY-----\n" + public_key + "\n-----END PUBLIC KEY-----", "-----BEGIN SECRET KEY-----\n" + secret_key + "\n-----END SECRET KEY-----"
-
 
     def sign(self, secret_key, message):
         # Oddělení záhlaví a závěrky a získání samotného klíče
@@ -67,7 +65,7 @@ class DILITHIUM:
         assert verify(public_key, message.encode('utf-8'), signature)
         return True
     
-class FALCON:
+class FALCON_PQCRYPTO:
     def __init__(self):
         global generate_keypair, sign, verify
         import configparser
@@ -75,7 +73,7 @@ class FALCON:
         config = configparser.ConfigParser()
         config.read("config.ini")
 
-        version = config.get("ALGORITHM", "signversion")
+        version = config.get("ALGORITHM", "signversion_FP")
 
         if version == "falcon512":
             from pqcryptoL.pqcrypto.sign.falcon_512 import generate_keypair, sign, verify
@@ -106,7 +104,97 @@ class FALCON:
         assert verify(public_key, message.encode('utf-8'), signature)
         return True
     
-class SPHINCS:
+class FALCON_official:
+    """
+    https://falcon-sign.info/
+
+    https://github.com/tprest/falcon.py
+
+    Stahnout repozitar. Nainstalovat numpy, pycryptodome
+
+    hlavni program musi byt budu napsany v adresari falconu, nebo musi byt importovaci hlavicky upraveny na zaklade cesty
+
+    Falcon je velmi pomaly a nejspis pro pouziti nevhodny, 
+    """
+    
+    def __init__(self):
+        global version, pickle
+        import configparser
+
+        config = configparser.ConfigParser()
+        config.read("config.ini")
+
+        version = config.get("ALGORITHM", "signversion_FO")
+        from Falcon_official.falcon import SecretKey, PublicKey
+        import pickle
+        if version == "512":
+            version = 512
+        else:
+            version = 1024
+
+    def test(self):
+        from Falcon_official.falcon import SecretKey, PublicKey
+
+        sk = SecretKey(512)
+        pk = PublicKey(sk)
+
+        sig = sk.sign(b"Hello")
+
+        print(pk.verify(b"Hello", sig))
+
+    def generate_keypair(self):
+        from Falcon_official.falcon import SecretKey, PublicKey
+        # Alice generates a (public, secret) key pair
+        version2 = version
+        sk = SecretKey(version2)
+        pk = PublicKey(sk)
+        public_key = pickle.dumps(pk)
+        secret_key = pickle.dumps(sk)
+        public_key = base64.b64encode(public_key).decode('utf-8')
+        secret_key = base64.b64encode(secret_key).decode('utf-8')
+        return "-----BEGIN PUBLIC KEY-----\n" + public_key + "\n-----END PUBLIC KEY-----", "-----BEGIN SECRET KEY-----\n" + secret_key + "\n-----END SECRET KEY-----"
+
+    def sign(self, secret_key, message):
+        # Oddělení záhlaví a závěrky a získání samotného klíče
+        secret_key_start = "-----BEGIN SECRET KEY-----"
+        secret_key_end = "-----END SECRET KEY-----"
+
+        # Získání klíče
+        secret_key = secret_key.split(secret_key_start)[1].split(secret_key_end)[0].strip()
+        secret_key = base64.b64decode(secret_key.encode('utf-8'))
+        sk = pickle.loads(secret_key)
+        # Alice signs her message using her secret key
+
+        #message = base64.b64decode(message.encode('utf-8'))
+        signature = sk.sign(message.encode('utf-8'))
+        signature = base64.b64encode(signature).decode('utf-8')
+        return "-----BEGIN SIGNATURE-----\n" + signature + "\n-----END SIGNATURE-----"
+
+    def verify(self, public_key, message, signature):
+        # Oddělení záhlaví a závěrky a získání samotného klíče
+        public_key_start = "-----BEGIN PUBLIC KEY-----"
+        public_key_end = "-----END PUBLIC KEY-----"
+
+        # Získání klíče
+        public_key = public_key.split(public_key_start)[1].split(public_key_end)[0].strip()
+
+        # Oddělení záhlaví a závěrky a získání samotného klíče
+        signature_start = "-----BEGIN SIGNATURE-----"
+        signature_end = "-----END SIGNATURE-----"
+
+        # Získání klíče
+        signature = signature.split(signature_start)[1].split(signature_end)[0].strip()
+
+
+        # Bob uses Alice's public key to validate her signature
+        public_key = base64.b64decode(public_key.encode('utf-8'))
+        #message = base64.b64decode(message.encode('utf-8'))
+        sig = base64.b64decode(signature.encode('utf-8'))
+        pk = pickle.loads(public_key)
+        assert pk.verify(message.encode('utf-8'), sig)
+        return True
+
+class SPHINCSPlus_PQCRYPTO:
     def __init__(self):
         global generate_keypair, sign, verify
         import configparser
@@ -114,7 +202,7 @@ class SPHINCS:
         config = configparser.ConfigParser()
         config.read("config.ini")
 
-        version = config.get("ALGORITHM", "signversion")
+        version = config.get("ALGORITHM", "signversion_SP")
 
         if version == "sphincs_haraka_128f_robust":
             from pqcryptoL.pqcrypto.sign.sphincs_haraka_128f_robust import generate_keypair, sign, verify
@@ -236,30 +324,7 @@ class SPHINCS:
         assert verify(public_key, message.encode('utf-8'), signature)
         return True
     
-class Falcon1:
-    """
-    https://falcon-sign.info/
-
-    https://github.com/tprest/falcon.py
-
-    Stahnout repozitar. Nainstalovat numpy, pycryptodome
-
-    hlavni program musi byt budu napsany v adresari falconu, nebo musi byt importovaci hlavicky upraveny na zaklade cesty
-
-    Falcon je velmi pomaly a nejspis pro pouziti nevhodny, 
-    """
-    
-    def test():
-        from Falcon.falcon import SecretKey, PublicKey
-
-        sk = SecretKey(512)
-        pk = PublicKey(sk)
-
-        sig = sk.sign(b"Hello")
-
-        print(pk.verify(b"Hello", sig))
-
-class SPHINCSPlus:
+class SPHINCSPlus_official:
     
     """
     Z NIST jsem se podival na oficialni stranky SPHINCS+ https://sphincs.org/index.html
@@ -286,7 +351,7 @@ class SPHINCSPlus:
         config = configparser.ConfigParser()
         config.read("config.ini")
 
-        algorithm = config.get("ALGORITHM", "signversion")
+        algorithm = config.get("ALGORITHM", "signversion_SO")
 
         import importlib
 
@@ -348,8 +413,7 @@ class SPHINCSPlus:
         assert algorithm_module.verify(message.encode('utf-8'), signature, public_key)
         return True
 
-
-class SPHINCS_Tottifi:
+class SPHINCSPlus_Tottifi:
     
     """
     https://github.com/tottifi/sphincs-python
@@ -372,7 +436,7 @@ class SPHINCS_Tottifi:
         config = configparser.ConfigParser()
         config.read("config.ini")
 
-        version = config.get("ALGORITHM", "signversion")
+        version = config.get("ALGORITHM", "signversion_ST")
         casti = version.split('_')
 
         n = int(casti[0][1:]) 

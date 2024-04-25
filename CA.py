@@ -1,8 +1,8 @@
 import json
 from modules import  load_config
 from modules import jwt
-from modules.KEMalgorithm import *
-from modules.signatures import *
+from modules.kemAlgLib import *
+from modules.signAlgLib import *
 from modules.symmetric import symmetric_encryption,symmetric_decryption
 
 from uuid import uuid4
@@ -12,7 +12,7 @@ import tornado.websocket
 import tornado.gen
 
 NODE, ALGORITHM, CA = load_config('config.ini')
-kem_algorithm = globals()[ALGORITHM["kemalgorithm"]](ALGORITHM["kemversion"])
+kem_algorithm = globals()[ALGORITHM["kemalgorithm"]]()
 sign_algorithm = globals()[ALGORITHM["signalgorithm"]]()
 cert_table = []
 

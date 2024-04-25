@@ -1,8 +1,8 @@
 message = "the message"
 
-import modules.signatures as signatures
+import modules.signAlgLib as signAlgLib
 
-signalg = signatures.SPHINCS_Tottifi()
+signalg = signAlgLib.SPHINCS_Tottifi()
 
 pk, sk = signalg.generate_keypair()
 signature = signalg.sign(sk,message)

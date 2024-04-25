@@ -42,6 +42,7 @@ async def send_mess():
 async def get_sign_pk():
     global sign_private_key
     sign_private_key = await get_sign_private_key(my_address, CA, ALGORITHM)
+    tornado.ioloop.IOLoop.current().call_later(1, send_mess) 
 
 if __name__ == "__main__":
     app = make_app()
@@ -64,6 +65,5 @@ if __name__ == "__main__":
     my_address['ip_address'] = "localhost"
     my_address['port'] = port
 
-    tornado.ioloop.IOLoop.current().call_later(1, get_sign_pk)
-    tornado.ioloop.IOLoop.current().call_later(2, send_mess)  
+    tornado.ioloop.IOLoop.current().call_later(1, get_sign_pk) 
     tornado.ioloop.IOLoop.current().start()
