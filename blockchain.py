@@ -28,6 +28,13 @@ node_table = []
 # Instantiate the Blockchain
 blockchain = bch.Blockchain(int(NODE["complexity"]))
 
+async def send_request(url, body=None, method=None):
+    if method == "POST":
+        response = await tornado.httpclient.AsyncHTTPClient().fetch(url, method=method, body=body)
+    elif method == "GET":
+        response = await tornado.httpclient.AsyncHTTPClient().fetch(url, method=method)
+    return response
+
 
 class MiningHandler(tornado.web.RequestHandler):
     async def get(self, action):
@@ -42,20 +49,23 @@ class MiningHandler(tornado.web.RequestHandler):
                 # Odesle vsem nodum prikaz at zacnou tezit, vcetne sebe
                 for node in node_table:
                     url = f"http://{node["ip_address"]}:{node["port"]}/mine/miner"
-                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps({"miner":"start"}))
+                    await send_request(url, json.dumps({"miner":"start"}), method='POST')
                 self.write("Nodes have started the mining in the background.")
                 return
+
+    
     
     async def post(self, action):
         global t
         if action == "miner":
-            def send_result(timestamp):
+            async def send_result(timestamp):
                 print("odesilam")
                 for node in node_table:
                     # Rekne vsem ze hra skoncila. Posle vsem svuj vytezeny blok
                     print(f"zprava pro {node["port"]}")
                     url = f"http://{node["ip_address"]}:{node["port"]}/mine/stop"
-                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps([block,timestamp]))
+                    await send_request(url, json.dumps([block,timestamp]), method='POST')
+
             
             # Overime jestli prave netezime blok, pokud ano jedna se nezadanou aktivitu a nebudeme na ni reagovat
             if blockchain.ismining:
@@ -102,7 +112,8 @@ class MiningHandler(tornado.web.RequestHandler):
                 #print(f"blockadded\n{blockchain.hash(block)}\n{json.dumps(block)}")
             else:
                 self.write("invalid block")
-            await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{my_address["ip_address"]}:{my_address["port"]}/mine/start', method='GET')
+            await send_request(f'http://{my_address["ip_address"]}:{my_address["port"]}/mine/start', method='GET')
+
 
 class New_logHandler(tornado.web.RequestHandler):
     async def post(self):
@@ -121,7 +132,7 @@ class New_logHandler(tornado.web.RequestHandler):
             for node in node_table:
                 if (node["ip_address"] == my_address['ip_address'] and node["port"] == my_address["port"]) is False:
                     url = f"http://{node["ip_address"]}:{node["port"]}/logs/new"
-                    await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps(values))
+                    await send_request(url, body=json.dumps(values), method='POST')
             return 
                     
         else:
@@ -147,7 +158,7 @@ class ChainHandler(tornado.web.RequestHandler):
                 # Odesle vsem nodum prikaz at zacnou porovnavat retezy, vcetne sebe
                 for node in node_table:
                     url = f"http://{node["ip_address"]}:{node["port"]}/chain/resolver"
-                    tornado.httpclient.AsyncHTTPClient().fetch(url, method='GET')
+                    await send_request(url, method='GET')
                 self.write("Nodes have started the resolving in the background.")
                 return
 
@@ -168,7 +179,7 @@ class ChainHandler(tornado.web.RequestHandler):
             # Ziska hashe retezu od vsech nodu 
             hashes = []
             for node in node_table:
-                response = await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{node["ip_address"]}:{node["port"]}/chain/hash', method='GET')
+                response = await send_request(f'http://{node["ip_address"]}:{node["port"]}/chain/hash', method='GET')
                 hashes.append({"hash":response.body.decode(),"ip_address":node["ip_address"],"port":node["port"]})
 
             
@@ -183,7 +194,7 @@ class ChainHandler(tornado.web.RequestHandler):
                 }
             else:
                 if correct_node is not None:
-                    blockchain.chain = (json.loads((await tornado.httpclient.AsyncHTTPClient().fetch(f'http://{correct_node["ip_address"]}:{correct_node["port"]}/chain/get', method='GET')).body.decode('utf-8')))["chain"]
+                    blockchain.chain = (json.loads((await send_request(f'http://{correct_node["ip_address"]}:{correct_node["port"]}/chain/get', method='GET')).body.decode('utf-8')))["chain"]
                     response = {
                         'message': 'Our chain was replaced',
                         'new_chain': blockchain.chain,
@@ -224,7 +235,7 @@ class Node_Register_nodeHandler(tornado.web.RequestHandler):
         # Odesle svoji updatovanou tabulku vsem co zna
         for node in node_table:
             url = f"http://{node["ip_address"]}:{node["port"]}/nodes/set_nodetable"
-            await tornado.httpclient.AsyncHTTPClient().fetch(url, method='POST', body=json.dumps(node_table))
+            await send_request(url, method='POST', body=json.dumps(node_table))
         return
 
 class Node_Get_node_tableHandler(tornado.web.RequestHandler):
@@ -255,10 +266,10 @@ async def register_node_async():
         }
 
         # Odeslu svoji registraci na node
-        await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/nodes/register_node", method='POST', body=json.dumps(data))
+        await send_request(f"http://{ip_address}:{port}/nodes/register_node", method='POST', body=json.dumps(data))
 
         # Ziskam od sousedniho nodu aktualni blockchain, tim prepisu ten svuj. Prvni node prepise sam sebe
-        blockchain.chain = (json.loads((await tornado.httpclient.AsyncHTTPClient().fetch(f"http://{ip_address}:{port}/chain/get", method='GET')).body.decode('utf-8')))["chain"]
+        blockchain.chain = (json.loads((await send_request(f"http://{ip_address}:{port}/chain/get", method='GET')).body.decode('utf-8')))["chain"]
 
 if __name__ == "__main__":
     app = make_app()
