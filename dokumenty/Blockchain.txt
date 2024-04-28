@@ -1,0 +1,8 @@
+Blockchain
+https://builtin.com/blockchain/consensus-mechanism
+Mechanismus konsenzu je samoregulační zásobník softwarových protokolů zapsaných do kódu blockchainu, který synchronizuje síť do dohody o stavu digitální účetní knihy. Toho se dosahuje udržováním jediné datové sady – vzájemně odsouhlasené verze transakční historie blockchainu – spíše než využíváním každého uzlu nebo počítače v síti k individuální správě vlastní kopie databáze jako celku.
+
+Přestože při programov
+ání standardu sítě pro ověřování existuje řada mechanismů konsenzu, které je třeba vzít v úvahu, každý přístup je zaměřen na diskreditaci podvodníků v jejich pokusech odporovat záznamu.
+
+Uzly před přidáním vytěženého bloku do řetězu ověří správnost hashe a správnost dat v něm.

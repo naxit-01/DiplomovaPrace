@@ -1,0 +1,6 @@
+pouzita literatura
+https://nvlpubs.nist.gov/nistpubs/ir/2016/NIST.IR.8105.pdf
+[x5] https://groups.google.com/a/list.nist.gov/g/pqc-forum?_x_tr_sl&_x_tr_tl&_x_tr_hl&pli=1
+[x6] https://csrc.nist.gov/csrc/media/Projects/post-quantum-cryptography/documents/selected-algos-2022/history-pqc-selected-algorithm-updates.pdf
+[x8] https://www.youtube.com/watch?v=QDdOoYdb748
+https://medium.com/@hwupathum/using-crystals-kyber-kem-for-hybrid-encryption-with-java-0ab6c70d41fc
